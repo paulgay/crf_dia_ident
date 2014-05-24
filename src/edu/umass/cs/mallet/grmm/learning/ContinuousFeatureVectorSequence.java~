@@ -1,0 +1,7 @@
+package edu.umass.cs.mallet.grmm.learning;
+
+
+public class ContinuousFeatureVectorSequence extends FeatureVectorSequence
+{
+
+}
