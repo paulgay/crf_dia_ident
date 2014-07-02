@@ -4,6 +4,7 @@ import edu.umass.cs.mallet.base.types.Instance;
 import edu.umass.cs.mallet.base.pipe.Pipe;
 import edu.umass.cs.mallet.base.types.FeatureVectorSequence;
 import edu.umass.cs.mallet.base.types.FeatureVector;
+
 import java.util.*;
 import java.io.*;
 public class InstanceRepere extends Instance{
@@ -17,7 +18,6 @@ public class InstanceRepere extends Instance{
     private String dir;
     private ArrayList<String> types;
     private ArrayList<String> segmentNames;
-    private HashMap<String,ArrayList<String>> shotcarac;
     private HashMap<String,ArrayList<String>> features;
     private HashMap<String,double[][]> tables;
     private double[][] shots;
@@ -26,7 +26,6 @@ public class InstanceRepere extends Instance{
     boolean locked = false;
     Pipe pipe;
     Object name;
-	private HashMap<String, HashMap<String, String>> captions;
 	//private HashMap<String, String> speaker2head;
 	private ArrayList<ArrayList<String>> uniqPairs;
 	private String outputFile;
@@ -41,12 +40,11 @@ public class InstanceRepere extends Instance{
     	}
     	else throw new IllegalStateException ("Instance is locked.");
     }
-    public InstanceRepere(ArrayList<String> segmentNames,Object target,Object data,ArrayList<String> types,HashMap<String,Integer> segmentOrder,HashMap<String,Integer> labelIdx){
-    	super(data, target, null, null);
-    	this.types = types;
+    public InstanceRepere(ArrayList<String> segmentNames, HashMap<String,Integer> segmentOrder, Object target,HashMap<String,Integer> labelIdx){
+    	super(null, target, null, null);
     	this.segmentNames = segmentNames;
     	this.labelIdx =labelIdx;
-    	this.segmentOrder =segmentOrder;
+    	this.segmentOrder = segmentOrder;
     }
     public void dumpInstance(){
 		System.out.println("-----Instance: "+getName()+"---------");
@@ -55,37 +53,23 @@ public class InstanceRepere extends Instance{
 		for(int i=0;i<types.size();i++)
 		    System.out.println(segmentNames.get(i)+" "+types.get(i)+" "+segmentNumbers.get(i)+" "+labels.get(i));
     }
-    public void dumpAVTable(int iterNumber)throws Exception{
+    public void dumpAVTable(String avFileName)throws Exception{
 		String show = (String)name;
-		ArrayList<Integer> segmentNumbers=(ArrayList<Integer>)this.getData();
-		String outdirname=this.dir+"/iter"+iterNumber;
-		File outputdir=new File(outdirname);
-		if(!outputdir.exists())
-		    outputdir.mkdir();
-		FileWriter fstream = new FileWriter(outdirname+"/"+show+"-fusion.txt");
+		FileWriter fstream = new FileWriter(avFileName);
 		BufferedWriter out = new BufferedWriter(fstream);
-		for(int i=0;i<segmentNames.size();i++){
-		    if(types.get(i).equals("utter")){
-		    	int utterNumber =(int)segmentNumbers.get(i);
-		    	for(int j=0;j<segmentNames.size();j++){
-		    		if(types.get(j).equals("faceTrack")){
-		    			int trackNumber =(int)segmentNumbers.get(j);
-		    			double value=aVCostTable[utterNumber][trackNumber];
-		    			out.write(segmentNames.get(i)+" "+segmentNames.get(j)+" "+value+"\n");
-		    		}
-		    	}
-		    }
+		for(String seg1: segmentNames){
+			for(String seg2: segmentNames){
+				int iseg1=(int)segmentOrder.get(seg1);
+				int iseg2=(int)segmentOrder.get(seg2);
+				double value=aVCostTable[iseg1][iseg2];
+				if(value!=-9999){
+					out.write(seg1+" "+seg2+" "+value+"\n");
+					
+				}				
+			}
 		}
 		out.close();
     }
-	public HashSet<String> getShotFeatureSet() {
-		HashSet<String> featureset=new HashSet<String>();
-		for(String segment : segmentNames)
-			if(shotcarac.containsKey(segment))
-				featureset.addAll(shotcarac.get(segment));
-		return featureset;
-	}
-
     public void dumpLadTable(int iterNumber)throws Exception{
 		String show = (String)name;
 		ArrayList<Integer> segmentNumbers=(ArrayList<Integer>)this.getData();
@@ -176,42 +160,6 @@ public class InstanceRepere extends Instance{
 		out.close();
 
     }
-	public void dumpShotCarac(int iterNumber, String filename) throws Exception{
-		String show = (String)name;
-		String outdirname=this.dir+"/iter"+iterNumber;
-		File outputdir=new File(outdirname);
-		if(!outputdir.exists())
-		    outputdir.mkdir();
-		FileWriter fstream = new FileWriter(outdirname+"/"+filename);
-		BufferedWriter out = new BufferedWriter(fstream);
-		for(String name : guestAr1)
-			out.write(name+" ");
-		out.write("\n");
-		for (Map.Entry entry : shotcarac.entrySet()) {
-			out.write(entry.getKey()+" ");
-			for(String f : (ArrayList<String>)entry.getValue() )
-				out.write(f+" ");
-			out.write("\n");
-		}
-		out.close();
-	}
-	public void dumpCaptions(int iterNumber, String filename) throws IOException {
-		String show = (String)name;
-		String outdirname=this.dir+"/iter"+iterNumber;
-		File outputdir=new File(outdirname);
-		if(!outputdir.exists())
-		    outputdir.mkdir();
-		FileWriter fstream = new FileWriter(outdirname+"/"+filename);
-		BufferedWriter out = new BufferedWriter(fstream);
-		for (Map.Entry entry : captions.entrySet()) {
-			out.write(entry.getKey()+" ");
-			for (Map.Entry namevalue : ((HashMap<String, ArrayList<String>>) entry.getValue()).entrySet()) 
-				out.write(namevalue.getKey()+" "+namevalue.getValue()+" ");
-			out.write("\n");
-		}
-		out.close();
-	}
-
     public void dumpATable(int iterNumber, String filename, double[][] table, boolean audio)throws Exception{
 		String outdirname=this.dir+"/iter"+iterNumber;
 		File outputdir=new File(outdirname);
@@ -280,33 +228,6 @@ public class InstanceRepere extends Instance{
     public String getDir(){return dir;}
     public void setDir(String dir){this.dir=dir;}
     public Pipe getPipe(){return pipe;}
-	public HashMap<String,ArrayList<String>> getShotcarac() {return shotcarac;}
-	public void setShotcarac(HashMap<String,ArrayList<String>> shotcarac) {	this.shotcarac = shotcarac;	}
-	public boolean useshot() {
-		if(shotcarac!=null)
-			return true;
-		else
-			return false;
-	}
-	public boolean usecaption() {
-		if(captions!=null)
-			return true;
-		else
-			return false;
-	}
-	public HashSet<String> getCaptionFeaturesSet() {
-		HashSet<String> captionFeatureSet=new HashSet<String>();
-		for(String segment : segmentNames)
-			if(captions.containsKey(segment))
-				for (Map.Entry entry : captions.get(segment).entrySet()) {
-					captionFeatureSet.add((String) entry.getValue());
-				}
-		return captionFeatureSet;
-		}
-	public HashMap<String, HashMap<String, String>> getCaptions() {	return captions;}
-	public void setCaptions(HashMap<String, HashMap<String, String>> captions) {	this.captions=captions;}
-	//public HashMap<String, String> getSpeaker2Head() { return speaker2head;	}
-	//public void setSpeaker2head(HashMap<String, String> s2h){ this.speaker2head=s2h;}
 	public HashMap<String,double[][]> getTables() {
 		return tables;
 	}
@@ -331,13 +252,9 @@ public class InstanceRepere extends Instance{
 			featureset.add(entry.getKey());
 		return featureset;
 	}
-	public void dumpTables(int iterNumber, String filename) throws IOException {
-		String show = (String)name;
-		String outdirname=this.dir+"/iter"+iterNumber;
-		File outputdir=new File(outdirname);
-		if(!outputdir.exists())
-		    outputdir.mkdir();
-		FileWriter fstream = new FileWriter(outdirname+"/"+filename);
+	public void dumpTables(String filename) throws IOException {
+		File file=new File(filename);
+		FileWriter fstream = new FileWriter(file);
 		BufferedWriter out = new BufferedWriter(fstream);
 		for(int i=0;i<segmentNames.size();i++){
 			String track = segmentNames.get(i);

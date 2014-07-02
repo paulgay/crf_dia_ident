@@ -30,7 +30,6 @@ import java.util.*;
 import gnu.trove.*;
 import tool4Gmms.InstanceListRepere;
 import tool4Gmms.InstanceRepere; 
-import tool4Gmms.SelectEdges; 
 
 
 /**

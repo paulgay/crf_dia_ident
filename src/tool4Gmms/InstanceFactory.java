@@ -1,10 +1,12 @@
 package tool4Gmms;
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
 
 import edu.umass.cs.mallet.base.pipe.iterator.AbstractPipeInputIterator;
 import edu.umass.cs.mallet.grmm.learning.ACRF;
 import edu.umass.cs.mallet.grmm.learning.templates.TableTemplate;
+import edu.umass.cs.mallet.grmm.learning.templates.VisualTemplateDct;
 import edu.umass.cs.mallet.grmm.learning.templates.UniquenessTemplate;
 public class InstanceFactory  extends AbstractPipeInputIterator{
 
@@ -22,39 +24,82 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     private String dir;
     private int nextShow;
     private int iterNumber=-1;
-
-    public InstanceFactory(String dir,int iterNumber, ArrayList<String> shows, ACRF.Template[] templates)throws Exception{
-		this.iterNumber=iterNumber;
-		this.dir=dir;
-		this.templates=templates;
-		this.shows=shows;
-		nextShow=0;
+    private     HashMap<String,String> lists; //show listFile
+    private     HashMap<String,String> uniqConstraints; //show listFile
+    private     HashMap<String,ArrayList<String>> unaries; //show, set of filename with unary features
+    private     HashMap<String,ArrayList<String>> pairs; //show, set of filename with pairwise features
+	private Iterator<Entry<String, String>> it;
+	private String logdir="";
+	private String outputDir;
+    public InstanceFactory(String configfile)throws Exception{
+    	String line, pattern="[ ]+";
+    	String[] tokens;
+    	BufferedReader in = new BufferedReader(new FileReader(configfile));
+    	String show="";
+    	while((line = in.readLine())!=null){
+    	    tokens=line.split(pattern);
+    	    switch (new Integer(tokens[0])) {
+    	    case 0: show=tokens[1];
+    	    			break;
+    	    case 1: lists.put(show, tokens[1]);
+    	    				break;
+    	    case 2: if(!unaries.containsKey(show))
+    	    	unaries.put(show, new ArrayList<String>());
+    	    	ArrayList<String> unariesThisShow = unaries.get(show);
+    	    	unariesThisShow.add(tokens[1]);
+    	    break;
+    	    case 3 :if(!pairs.containsKey(show))
+    	    	pairs.put(show, new ArrayList<String>());
+    	    	ArrayList<String> pairsThisShow = pairs.get(show);
+    	    	pairsThisShow.add(tokens[1]);
+    	    break;
+    	    case 4:uniqConstraints.put(show, tokens[1]);
+    	    break;
+    	    case 5:outputDir=tokens[1];
+    	    break;
+    	    case 6:logdir=tokens[1];
+    	    break;
+    	    default: break;
+    	    }
+    	}
+    	in.close();
+		it=lists.entrySet().iterator();
     }
-    public InstanceRepere loadMapping(String mapFileName)throws Exception{
-	segmentNames=new ArrayList<String> ();
-	labels= new ArrayList<String> ();
-	segmentIdx =new ArrayList<Integer> ();
-	types= new ArrayList<String> ();
-	segmentOrder = new HashMap<String,Integer>();
-	labelIdx= new HashMap<String,Integer> ();
-	String line, pattern="[ ]+";
-	String[] tokens;
-	BufferedReader in = new BufferedReader(new FileReader(mapFileName));
-	int lIdx=0;
-	while((line = in.readLine())!=null){
-	    tokens=line.split(pattern);
-	    labels.add(tokens[0]);
-	    segmentNames.add(tokens[1]);
-	    segmentIdx.add(new Integer((new Double(tokens[2])).intValue()));
-	    segmentOrder.put(tokens[1],new Integer((new Double(tokens[2])).intValue()));
-	    types.add(tokens[3]);
-	    if(!labelIdx.containsKey(tokens[0])){
-			labelIdx.put(tokens[0],new Integer(lIdx));
-			lIdx+=1;
-	    }
-	}
-	in.close();
-	return new InstanceRepere(segmentNames,labels,segmentIdx,types,segmentOrder,labelIdx);
+    public InstanceRepere loadMapping(String show)throws Exception{
+    	segmentNames=new ArrayList<String> ();
+    	labels= new ArrayList<String> ();
+    	labelIdx= new HashMap<String,Integer> ();
+    	String line, pattern="[ ]+";
+    	String[] tokens;
+    	BufferedReader in = new BufferedReader(new FileReader(lists.get(show)));
+    	int lIdx=0,sIdx=0;
+    	while((line = in.readLine())!=null){
+    		tokens=line.split(pattern);
+    		labels.add(tokens[0]);
+    		segmentNames.add(tokens[1]);
+    		segmentOrder.put(tokens[0], new Integer(sIdx));
+    		sIdx+=1;
+    		if(!labelIdx.containsKey(tokens[0])){
+    			labelIdx.put(tokens[0],new Integer(lIdx));
+    			lIdx+=1;
+    		}
+    	}
+    	in.close();
+    	if(unaries.containsKey(show)){
+    		for(String file: unaries.get(show)){
+				in = new BufferedReader(new FileReader(file));
+    			while((line = in.readLine())!=null){
+    	    		tokens=line.split(pattern);
+    	    		segmentNames.add(tokens[1]);
+    	    		if(!labelIdx.containsKey(tokens[0])){
+    	    			labelIdx.put(tokens[0],new Integer(lIdx));
+    	    			lIdx+=1;
+    	    		}
+    	    	}   
+    	    	in.close();
+    		}
+    	}
+    	return new InstanceRepere(segmentNames,segmentOrder, labels,labelIdx);
     }
     public void addNoise(String aScoreFile, InstanceRepere carrier) throws Exception{
     	String line, pattern="[ ]+";
@@ -70,11 +115,11 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	}
     	in.close();
     }
-    public void setAVScore (String avcostFile, InstanceRepere carrier, String hungarianFile)throws Exception{
+    public void setAVScore (String avcostFile, InstanceRepere carrier)throws Exception{
 		String line;
 		String pattern="[ ]+";
 		String[] tokens;
-		aVCostTable=new double[carrier.getNumUtterances()][carrier.getNumFaceTracks()];
+		aVCostTable=new double[carrier.getSegmentNames().size()][carrier.getSegmentNames().size()];
 		for(int i=0;i<aVCostTable.length;i++)
 		    for(int j=0;j<aVCostTable[0].length;j++){
 		    	aVCostTable[i][j]=-9999;
@@ -147,79 +192,44 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	return ocrr1;
     }
     public InstanceRepere nextInstance(){
-	assert (nextShow != -1);
-	InstanceRepere carrier = getInstanceForShow(nextShow);
-	nextShow = getNextShow();
+    	Map.Entry pairs = (Map.Entry)it.next();
+	InstanceRepere carrier = getInstanceForShow((String) pairs.getKey());
 	return carrier;
     }
-    public int getNextShow(){
-	if(nextShow==(shows.size()-1))
-	    return -1;
-	else{
-	    nextShow=nextShow+1;
-	    return nextShow;
-	}
-    }
     public boolean hasNext (){
-	return nextShow!=-1;
+    	return it.hasNext();
     }
-    public InstanceRepere getInstanceForShow(int nextShow){
-	String currentShow=shows.get(nextShow);
-	String aScoreFile,avScoreFile,vSiftScoreFile,featFile;
-	InstanceRepere carrier=null;
-	System.out.println("getting instance for show: "+currentShow);
-	aScoreFile = dir+"/iter"+iterNumber+"/ascore/"+currentShow+".atable";
-	vSiftScoreFile=dir+"/iter"+iterNumber+"/vscore/"+currentShow+".vsifttable";
-	featFile=dir+"/iter"+iterNumber+"/avscores/"+currentShow+".feat";
-	avScoreFile = dir+"/iter"+iterNumber+"/avscores/"+currentShow+".value4dec";
-	String hungarianFile=dir+"/init/avcues/"+currentShow+".hung";
-	String uniqFile = dir+"/init/avcues/"+currentShow+".uniq";
+    public InstanceRepere getInstanceForShow(String currentShow){
+    	InstanceRepere carrier=null;
+    	System.out.println("getting instance for show: "+currentShow);
 	try{
-		carrier=loadMapping(dir+"/iter"+iterNumber+"/list/"+currentShow+".list");
-		//addNoise(vCaptionFile,carrier);
-		//addNoise(aCaptionFile,carrier); //not really noise, just adding identities from the captions
-	    if(iterNumber==0){
-	    	addNoise(aScoreFile,carrier); // put some noise in the biometrics models of the train. (labels which are not mapped by a reference but which are produced by the diarization. they are introduced for the CRF to learn how to get rid of them)
-	    	addNoise(vSiftScoreFile,carrier); 
-	    }
-	    carrier.setDir(this.dir);
+		carrier=loadMapping(currentShow);
 	    carrier.setName(currentShow);
-	    for(int i=0;i<templates.length;i++){
-	    	if(templates[i] instanceof ACRF.FusionTemplate){
-	    		System.out.println(avScoreFile);
-	    		System.out.println(hungarianFile);
-	    	    setAVScore(avScoreFile,carrier,hungarianFile);
-	    	    carrier.dumpAVTable(iterNumber);
-	    	}
-	    }
-	    for(int i=0;i<templates.length;i++){
-	    	if(templates[i] instanceof ACRF.AcousticTemplate){
-	    		System.out.println(aScoreFile);
-	    		carrier.setACostTable(getVScore2(aScoreFile,carrier,0.46589,true));
-	    		//setAScore2(aScoreFile,aScoreFileCohort, carrier);
-		    	carrier.dumpATable(iterNumber);
-	    	}
-	    	if(templates[i] instanceof ACRF.VisualTemplateSift){
-	    		System.out.println(vSiftScoreFile);
-	    		carrier.setVSiftCostTable(getVScore2(vSiftScoreFile,carrier,-0.928285019239,false));
-	    		carrier.dumpVTableSift(iterNumber);
-	    	}
-	    	if(templates[i] instanceof TableTemplate){
-	    		System.out.println(featFile);
+	    if(unaries.containsKey(currentShow)){
+	    	for(String file: unaries.get(currentShow)){
+	    		System.out.println(file);
 	    		HashMap<String,ArrayList<String>> features = new HashMap<String,ArrayList<String>>();
-	    		carrier.setTables(getTables(featFile, features));
+	    		carrier.setTables(getTables(file, features));
 	    		carrier.setFeatures(features);
-	    		carrier.dumpTables(iterNumber, currentShow+"-tables");
 	    	}
-	    	if(templates[i] instanceof UniquenessTemplate){
-	    		
-				System.out.println(uniqFile);
-	    		carrier.setUniqPairs(getUniq(uniqFile));
+	    	if(!logdir.equals("")){
+	    		carrier.dumpTables(logdir+"/"+currentShow+"-tables");	    		
 	    	}
 	    }
+	    if(pairs.containsKey(currentShow)){
+	    	for(String file : pairs.get(currentShow)){
+	    		System.out.println(file);
+	    		setAVScore(file,carrier);
+		    	if(!logdir.equals("")){
+		    		carrier.dumpAVTable(logdir+"/"+currentShow+"-avasso");	    		
+		    	}
+	    	}
+	    }
+	    if(uniqConstraints.containsKey(currentShow)){
+			System.out.println(uniqConstraints.get(currentShow));
+	    	carrier.setUniqPairs(getUniq(uniqConstraints.get(currentShow)));
+	    }
 	    carrier.setName(currentShow);
-	    carrier.setDir(this.dir);
-
 	    //carrier.dumpPTable();
 	}
 	catch(Exception e){e.printStackTrace();}
@@ -282,37 +292,11 @@ private ArrayList<ArrayList<String>> getUniq(String uniqFile) throws IOException
     	in.close();
 		return tables;
 	}
-	public void dumpAVCostTable(String show)throws Exception{
-		FileWriter fstream = new FileWriter(show+".avtable");
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.close();
-    }
-    public void dumpAssocMatrix(ArrayList<String> speakerList, ArrayList<String> headList, double[][] costMatrix)throws Exception{
-	FileWriter fstream = new FileWriter(dir+"/fusion/iter"+iterNumber+"/"+shows.get(nextShow)+".assocMatrix");
-	BufferedWriter out = new BufferedWriter(fstream);
-	out.write(speakerList.get(0));
-	for (int i = 1; i < speakerList.size(); i++) {
-	    out.write(" "+speakerList.get(i));
-	}
-	out.write("\n");
-	out.write(headList.get(0));
-	for (int i = 1; i < headList.size(); i++) {
-	    out.write(" "+headList.get(i));
-	}
-	out.write("\n");
-	for (int i = 0; i < speakerList.size(); i++) {
-	    out.write( Double.toString(costMatrix[i][0]));
-	    for (int j = 1; j < headList.size(); j++) {
-		out.write( Double.toString(costMatrix[i][j]));
-	    }
-	    out.write("\n");
-	}
-	out.close();
-    }
-    public HashMap<String,String> getAssociation(){return association;}
     public double[][] getAtable(){return aCostTable;}
     public static void main(String args[]){
 	double[][] q={{1,1,2,2},{4,5,6,7}};
     }
-	public String getDir() { return dir; }
+	public String getoutputDir() {
+		return outputDir;
+	}
 }

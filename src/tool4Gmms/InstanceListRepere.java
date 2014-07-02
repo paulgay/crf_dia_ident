@@ -46,14 +46,10 @@ public class InstanceListRepere extends InstanceList
     public void add (PipeInputIterator pi)
     {
 		while (pi.hasNext()) {
-		    InstanceRepere carrier = ((InstanceFactory2)pi).nextInstance();
+		    InstanceRepere carrier = ((InstanceFactory)pi).nextInstance();
 		    carrier.setPipe(this.pipe);
 		    if(carrier.useTable())
 		    	features.addAll(carrier.getFeaturesSet());
-		    if(carrier.useshot())
-		    	shotfeatures.addAll(carrier.getShotFeatureSet());
-		    if(carrier.usecaption())
-		    	captionfeatures.addAll(carrier.getCaptionFeaturesSet());
 		    add (carrier);
 		}
     }

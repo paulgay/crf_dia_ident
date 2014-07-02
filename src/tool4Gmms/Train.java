@@ -28,11 +28,9 @@ public class Train{
   private static CommandOption.File modelFile = new CommandOption.File
           (GenericAcrfTui.class, "model-file", "FILENAME", true, null, "Text file describing model structure.", null);
 
-  private static CommandOption.File trainFile = new CommandOption.File
-          (GenericAcrfTui.class, "training", "FILENAME", true, null, "File containing training data.", null);
 
-  private static CommandOption.File testFile = new CommandOption.File
-          (GenericAcrfTui.class, "testing", "FILENAME", true, null, "File containing testing data.", null);
+  private static CommandOption.File pathsfile = new CommandOption.File
+          (GenericAcrfTui.class, "pathsfile", "FILENAME", true, null, "File containing paths to the different files", null);
 
   private static CommandOption.Integer numLabelsOption = new CommandOption.Integer
   (GenericAcrfTui.class, "num-labels", "INT", true, -1,
@@ -91,15 +89,12 @@ public class Train{
 	    AvDiarizationPipe pipe = new AvDiarizationPipe();
 	    String showsTrainFile = trainingshows.value;
         ArrayList<String> showTrain = getShows(showsTrainFile);
-	    String trainingDataDir = trainFile.value.getAbsolutePath();
+	    String pathsFile = pathsfile.value.getAbsolutePath();
 	    ACRF.Template[] tmpls = parseModelFile (modelFile.value);
-	    //MakeTableFrValues inputTrainingPipe = new MakeTableFrValues(trainingDataDir,-1,showTrain,tmpls);
 	    int itNumber=(int)(new Integer (iterNumber.value));
-	    InstanceFactory inputTrainingPipe = new InstanceFactory(trainingDataDir,itNumber,showTrain,tmpls);
+	    InstanceFactory inputTrainingPipe = new InstanceFactory(pathsFile);
 	    InstanceListRepere training = new InstanceListRepere(pipe);
 	    training.add(inputTrainingPipe);
-	    
-	    
 	    ACRFEvaluator eval = createEvaluator (evalOption.value);
 	    Inferencer inf = createInferencer (inferencerOption.value);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
@@ -112,15 +107,7 @@ public class Train{
 	    FileUtils.writeGzippedObject (new File (model.value), acrf);
 	    timing.tick ("Training");
 	    System.out.println ("Total time (ms) = " + timing.elapsedTime ());
-/*    
-	    String testingDataDir = testFile.value.getAbsolutePath();
-	    String showsTestFile = testshows.value;
-	    ArrayList<String> showTest = getShows(showsTestFile);
-	    MakeTableFrValues inputTestingPipe = new MakeTableFrValues(testingDataDir,-1,showTest,tmpls);
-	    InstanceListRepere testing = new InstanceListRepere(pipe);
-	    testing.add(inputTestingPipe);
-	    AVDiarizationEval.writeResults(acrf,testing,itNumber);
-*/
+
 	}
 	catch(Exception e){System.out.println(e); e.printStackTrace();}
     }

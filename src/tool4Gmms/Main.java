@@ -28,11 +28,8 @@ public class Main{
   private static CommandOption.File modelFile = new CommandOption.File
           (GenericAcrfTui.class, "model-file", "FILENAME", true, null, "Text file describing model structure.", null);
 
-  private static CommandOption.File trainFile = new CommandOption.File
-          (GenericAcrfTui.class, "training", "FILENAME", true, null, "File containing training data.", null);
-
-  private static CommandOption.File testFile = new CommandOption.File
-          (GenericAcrfTui.class, "testing", "FILENAME", true, null, "File containing testing data.", null);
+  private static CommandOption.File pathsfile = new CommandOption.File
+          (GenericAcrfTui.class, "pathsfile", "FILENAME", true, null, "File containing paths to the different files", null);
 
   private static CommandOption.Integer numLabelsOption = new CommandOption.Integer
   (GenericAcrfTui.class, "num-labels", "INT", true, -1,
@@ -89,28 +86,8 @@ public class Main{
 	try {
 	    int itNumber=(int)(new Integer (iterNumber.value));
 	    AvDiarizationPipe pipe = new AvDiarizationPipe();
-	    /*
-	    String showsTrainFile = trainingshows.value;
-            ArrayList<String> showTrain = getShows(showsTrainFile);
-	    String trainingDataDir = trainFile.value.getAbsolutePath();
-	    MakeTableFrValues inputTrainingPipe = new MakeTableFrValues(trainingDataDir,-1,showTrain);
-	    InstanceListRepere training = new InstanceListRepere(pipe);
-	    training.add(inputTrainingPipe);
-	    ACRF.Template[] tmpls = parseModelFile (modelFile.value);
-	    ACRFEvaluator eval = createEvaluator (evalOption.value);
-	    Inferencer inf = createInferencer (inferencerOption.value);
-	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
-	    ACRF acrf = new ACRF (pipe, tmpls);//ACRF.java l64
-	    acrf.setInferencer (inf);
-	    acrf.setViterbiInferencer (maxInf);
-	    ACRFTrainer trainer = new ACRFTrainer ();//empty constructor
-	    trainer.train (acrf, training, null, null, eval, 9999);//ACRFTrainer l84
-	    FileUtils.writeGzippedObject (new File (showsTrainFile+"sift.ser.gz"), acrf);
-	    System.exit(0);
-	    /*/
-
-	    //*
-	    String testingDataDir = testFile.value.getAbsolutePath();
+	    
+	    String pathsFile = pathsfile.value.getAbsolutePath();
 	    String showsTestFile = testshows.value;
 	    ArrayList<String> showTest = getShows(showsTestFile);
 	    String acrfzipped = model.value;
@@ -119,14 +96,15 @@ public class Main{
 	    //ACRF.Template[] temp=acrf.getTemplates();	    
 	    //ACRF.Template[] newtemp = {temp[0], temp[1],temp[2]};
 	    //acrf.setTemplates(newtemp);
-	    InstanceFactory inputTestingPipe = new InstanceFactory(testingDataDir,itNumber,showTest,acrf.getTemplates());
-	    //MakeTableFrValues inputTestingPipe = new MakeTableFrValues(testingDataDir,itNumber,showTest,acrf.getTemplates());
+            // the InstanceListe will call the InstanceFactory which initialise the tables and the instances (i.e. data for each show)
+            //the AvDiarizationPipe has dictionnary for the CRF to know which kind of data is in the instances. this pipe is piped through each instance in the InstanceListe when added by the function Instance.setPipe
+	    InstanceFactory inputTestingPipe = new InstanceFactory(pathsFile);
 	    InstanceListRepere testing = new InstanceListRepere(pipe);
 	    testing.add(inputTestingPipe);
 	    acrf.print(System.out);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
 	    acrf.setViterbiInferencer (maxInf);
-	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getDir(),itNumber);
+	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getoutputDir(),itNumber);
 	    //*/
 	    timing.tick ("Training");
 
