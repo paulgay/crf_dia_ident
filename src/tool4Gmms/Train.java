@@ -1,13 +1,16 @@
 package tool4Gmms;
 import bsh.EvalError;
 import edu.umass.cs.mallet.base.util.*;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+
 import edu.umass.cs.mallet.grmm.inference.Inferencer;
+import edu.umass.cs.mallet.grmm.learning.ACRF.Template;
 import edu.umass.cs.mallet.grmm.learning.GenericAcrfTui;
 import edu.umass.cs.mallet.grmm.learning.ACRF;
 import edu.umass.cs.mallet.grmm.learning.ACRFTrainer;
@@ -75,7 +78,17 @@ public class Train{
 	    ACRFEvaluator eval = createEvaluator (evalOption.value);
 	    Inferencer inf = createInferencer (inferencerOption.value);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
-	    ACRF acrf = new ACRF (pipe, tmpls);//ACRF.java l64
+	    ArrayList<ACRF.Template> trainables = new ArrayList<ACRF.Template>();
+	    ArrayList<ACRF.Template> nonTrainables = new ArrayList<ACRF.Template>();	    
+	    for(int i=0; i<tmpls.length;i++){
+	    	if(tmpls[i].isTrainable())
+	    		trainables.add(tmpls[i]);
+	    	else
+	    		nonTrainables.add(tmpls[i]);
+	    }
+	    ACRF acrf = new ACRF (pipe, trainables.toArray(new ACRF.Template[0]));
+	    acrf.addFixedPotentials(nonTrainables.toArray(new ACRF.Template[0]));
+	    //ACRF acrf = new ACRF (pipe, tmpls);//ACRF.java l64
 	    acrf.setInferencer (inf);
 	    acrf.setViterbiInferencer (maxInf);
 	    ACRFTrainer trainer = new ACRFTrainer ();//empty constructor

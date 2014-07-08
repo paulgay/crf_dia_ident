@@ -208,7 +208,7 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	    carrier.setName(currentShow);
 	    if(unaries.containsKey(currentShow)){
 	    	for(String file: unaries.get(currentShow)){
-	    		System.out.println(file);
+	    		System.out.println("parsing file: "+file);
 	    		HashMap<String,ArrayList<String>> features = new HashMap<String,ArrayList<String>>();
 	    		carrier.addUnaries(parseUnaries(file));
 	    		carrier.setFeatures(features);
@@ -219,7 +219,7 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	    }
 	    if(pairs.containsKey(currentShow)){
 	    	for(String file : pairs.get(currentShow)){
-	    		System.out.println(file);
+	    		System.out.println("parsing file: "+file);
 	    		carrier.addPairWise(parsePairWise(file));
 		    	if(!logdir.equals("")){
 		    		carrier.dumpPairWise(logdir+"/"+currentShow+"-avasso");	    		
@@ -227,8 +227,12 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	    	}
 	    }
 	    if(uniqConstraints.containsKey(currentShow)){
-			System.out.println(uniqConstraints.get(currentShow));
+			System.out.println("parsing file: "+uniqConstraints.get(currentShow));
 	    	carrier.setUniqPairs(getUniq(uniqConstraints.get(currentShow)));
+	    	if(!logdir.equals("")){
+	    		carrier.dumpUniq(logdir+"/"+currentShow+"-uniq");	    		
+	    	}
+
 	    }
 	    carrier.setName(currentShow);
 	    //carrier.dumpPTable();

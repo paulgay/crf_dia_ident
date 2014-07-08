@@ -23,23 +23,21 @@ import edu.umass.cs.mallet.grmm.types.AbstractTableFactor;
 import edu.umass.cs.mallet.grmm.types.LogTableFactor;
 import edu.umass.cs.mallet.grmm.types.Variable;
 
-public class UniquenessTemplate extends ACRF.ContinuousTemplate{
+public class UniquenessTemplate extends  ACRF.FixedFactorTemplate{
 	private static final long serialVersionUID = 1L;
 	private ArrayList<String> segmentNames;
-	private FeatureVectorSequence segmentNumbers;
 	private String show;
 	private ArrayList<ArrayList<String>> pairs;
-	public UniquenessTemplate(int factor){
-	    super(factor);
+	public UniquenessTemplate(){
+	    super();
 	}
 	public void setAttributes(InstanceRepere inst){
 		show= (String)inst.getName();
 		segmentNames=inst.getSegmentNames();
-		segmentNumbers=(FeatureVectorSequence)inst.getData();
 		pairs = inst.getUniqPairs();
 	}
 	
-	protected int initDenseWeights (InstanceList training)
+	/*protected int initDenseWeights (InstanceList training)
 	{
 	    int numf = 1;
 	    int total = 0;
@@ -59,7 +57,7 @@ public class UniquenessTemplate extends ACRF.ContinuousTemplate{
 	
 	    weights = newWeights;
 	    return total;
-	}
+	}*/
 	public void addInstantiatedCliques (ACRF.UnrolledGraph graph,   FeatureVectorSequence fvs,  LabelsSequence lblseq)
 		{
 			System.out.println("ACRF version is used with Instance repere, no method set yet to instantiate clique without the whole instance");
@@ -75,15 +73,15 @@ public class UniquenessTemplate extends ACRF.ContinuousTemplate{
 			int i = segmentNames.indexOf(a.get(1));
 			if(i==-1 || j==-1 || i==j )
 				continue;
-			Variable ft1 = graph.getVarForLabel (j, getFactor());
-			Variable ft2 = graph.getVarForLabel (i, getFactor());
+			Variable ft1 = graph.getVarForLabel (j, 0);
+			Variable ft2 = graph.getVarForLabel (i, 0);
 			double[] values = {0};
 			int[] indices = {0};
 			FeatureVector ftfv = fvs.getFeatureVector (j);
 			AugmentableFeatureVector fv = new AugmentableFeatureVector (ftfv.getAlphabet(), indices,values,1,1,false,false,false);
 			Variable[] vars = new Variable[] { ft1, ft2 };
-			assert ft1 != null : "Couldn't get label factor "+getFactor()+" time "+i;
-			assert ft2 != null : "Couldn't get label factor "+getFactor()+" time "+(i+1);
+			assert ft1 != null : "Couldn't get label factor "+"0"+" time "+i;
+			assert ft2 != null : "Couldn't get label factor "+"0"+" time "+(i+1);
 			ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet (graph, this, vars, fv);
 			 graph.addClique (clique);
 		}
@@ -91,13 +89,13 @@ public class UniquenessTemplate extends ACRF.ContinuousTemplate{
 	public AbstractTableFactor computeFactor (UnrolledVarSet clique)
 	{
 	    Matrix phi = createFactorMatrix(clique);//enable to get the labels from the matrix position
-	    //PairWiseMatrix phi= new PairWiseMatrix(clique.varDimensions ());
 	    SparseVector[] weights = getWeights();
 	    String outcome1,outcome2;
 	    Variable v;
-	    SparseVector w = weights[0];
-	    double[] param=w.getValues();
-	    double[][] ff = new double[phi.numLocations()][param.length]; //varDimensions ()[0] is the number of labels
+	    //SparseVector w = weights[0];
+	    //double[] param=w.getValues();
+	    //double[][] ff = new double[phi.numLocations()][param.length]; //varDimensions ()[0] is the number of labels
+	    double[][] ff = new double[phi.numLocations()][1];
 	    for (int loc = 0; loc < phi.numLocations(); loc++) {
 			int[] indices = new int[2];
 			int idx = phi.indexAtLocation(loc);
@@ -106,7 +104,8 @@ public class UniquenessTemplate extends ACRF.ContinuousTemplate{
 			outcome1=v.getLabelAlphabet().lookupLabel(indices[0]).toString();
 			v = clique.getVars()[1];
 			outcome2=v.getLabelAlphabet().lookupLabel(indices[1]).toString();
-			double[] values = new double[param.length];
+			//double[] values = new double[param.length];
+			double[] values = new double[1];
 			for(int i=0;i<values.length;i++)
 			    values[i]=0;
 			if(outcome1.equals(outcome2))
@@ -123,7 +122,7 @@ public class UniquenessTemplate extends ACRF.ContinuousTemplate{
 			    ff[loc][i]=values[i];
 			}
 			//		System.out.println("outcome 1: "+outcome1+" outcome2: "+outcome2+" feature: "+x+" et de N(): "+values[0]+" dp: "+dp+" default: "+getDefaultWeight(idx));
-			dp += getDefaultWeight(idx);
+			//dp += getDefaultWeight(idx);
 			phi.setValueAtLocation(loc, dp);
 	    }
 	    AbstractTableFactor ptl = new LogTableFactor(clique);

@@ -58,6 +58,9 @@ public class InstanceRepere extends Instance{
     public Pipe getPipe(){return pipe;}
 	public HashMap<String,double[][]> getUnaries() {return unaries;	}
 	public HashMap<String,double[][]> getPairWise() {return pairWise;	}
+	public void setUniqPairs(ArrayList<ArrayList<String>> arrayList) { this.uniqPairs=arrayList;	}
+	public ArrayList<ArrayList<String>> getUniqPairs() {	return uniqPairs; }
+	public String getoutputFile() {	return outputFile;	}	
 	public void addUnaries(HashMap<String,double[][]> unaries){
 		if(this.unaries==null)
 			this.unaries=unaries;
@@ -111,9 +114,6 @@ public class InstanceRepere extends Instance{
 			featureset.add(entry.getKey());
 		return featureset;
 	}
-	public void setUniqPairs(ArrayList<ArrayList<String>> arrayList) { this.uniqPairs=arrayList;	}
-	public ArrayList<ArrayList<String>> getUniqPairs() {	return uniqPairs; }
-	public String getoutputFile() {	return outputFile;	}
 	public void dumpPairWise(String filename) throws IOException {
 		File file=new File(filename);
 		FileWriter fstream = new FileWriter(file);
@@ -150,6 +150,14 @@ public class InstanceRepere extends Instance{
 			}
 		}
 		out.close();		
+	}
+	public void dumpUniq(String filename) throws IOException {
+		File file=new File(filename);
+		FileWriter fstream = new FileWriter(file);
+		BufferedWriter out = new BufferedWriter(fstream);
+		for(ArrayList<String> pair : uniqPairs){
+			out.write(pair.get(0)+" "+pair.get(1)+"\n");
+		}
 	}
 }
 	

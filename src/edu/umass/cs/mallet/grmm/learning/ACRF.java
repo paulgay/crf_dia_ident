@@ -417,7 +417,8 @@ public class ACRF implements Serializable {
 	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 	    in.defaultReadObject ();
-	    if (assignmentsPresent == null) {
+	    if (assignmentsPresent == null && isTrainable()) {
+	    	
 		assignmentsPresent = new BitSet (weights.length);
 		assignmentsPresent.flip (0, assignmentsPresent.size ());
 	    }
@@ -1055,9 +1056,10 @@ public class ACRF implements Serializable {
 	    defaultExpectations = new SparseVector [templates.length];
 	    for (int tidx = 0; tidx < templates.length; tidx++) {
 		//cliqueSizeFromInstance (training)
-		int size =((ContinuousTemplate)templates[tidx]).getTemplateSize();
-		SparseVector defaults = new SparseVector (new double [size], false);
-		//		SparseVector defaults =  templates[tidx].getDefaultWeights();
+	    	
+		//int size =((ContinuousTemplate)templates[tidx]).getTemplateSize();
+		//SparseVector defaults = new SparseVector (new double [size], false);
+		SparseVector defaults =  templates[tidx].getDefaultWeights();
 		defaultConstraints[tidx] = (SparseVector) defaults.cloneMatrixZeroed ();
 		defaultExpectations[tidx] = (SparseVector) defaults.cloneMatrixZeroed ();
 	    }
@@ -1068,13 +1070,13 @@ public class ACRF implements Serializable {
 	    for (int tidx = 0; tidx < templates.length; tidx++) {
 			Template tmpl = templates [tidx];
 			SparseVector[] weights = tmpl.getWeights();
-			int size =((ContinuousTemplate)templates[tidx]).getTemplateSize();//set to 1 in a contiuous template
-			constraints [tidx] = new SparseVector [size];
-			expectations [tidx] = new SparseVector [size];
-			//		constraints [tidx] = new SparseVector [weights.length];
-			//expectations [tidx] = new SparseVector [weights.length];
+			//int size =((ContinuousTemplate)templates[tidx]).getTemplateSize();//set to 1 in a contiuous template
+			//constraints [tidx] = new SparseVector [size];
+			//expectations [tidx] = new SparseVector [size];
+			constraints [tidx] = new SparseVector [weights.length];
+			expectations [tidx] = new SparseVector [weights.length];
 	
-			for (int i = 0; i < size; i++) {
+			for (int i = 0; i < weights.length ; i++) {
 			    constraints[tidx][i] = (SparseVector) weights[0].cloneMatrixZeroed ();
 			    expectations[tidx][i] = (SparseVector) weights[0].cloneMatrixZeroed ();
 			}
@@ -1122,9 +1124,9 @@ public class ACRF implements Serializable {
 
 	    logger.fine("Computing constraints");
 	    collectConstraints (trainData);//1401 instancier les cliques
-	    System.out.println("les contraintes: ");
-	    for(int j=0;j<expectations.length;j++)
-	    	System.out.println("template index Number: "+j+" constraint value: "+constraints[j][0]+" parameter value: "+templates [j].getWeights()[0]);
+	    //System.out.println("les contraintes: ");
+	    //for(int j=0;j<expectations.length;j++)
+	    //	System.out.println("template index Number: "+j+" constraint value: "+constraints[j][0]+" parameter value: "+templates [j].getWeights()[0]);
 
 	}
 
@@ -1483,6 +1485,9 @@ public class ACRF implements Serializable {
 			UnrolledVarSet clique = (UnrolledVarSet) it.next();
 			int tidx = clique.tmpl.index;
 			if (tidx == -1) continue;
+
+			//System.out.println(clique.tmpl);
+			//System.out.println(clique.getFv());
 			Factor ptl = inferencer.lookupMarginal (clique);
 			int numAssignments = clique.weight ();
 			// for each assigment to the clique
@@ -1668,7 +1673,7 @@ public class ACRF implements Serializable {
 			SparseVector w = weights[assn];
 			double [] param=w.getValues();
 			for(int i=0; i<param.length;i++){
-				if(tmpl instanceof ContinuousTemplate){
+				if(features!=null){
 					out.print(features.get(i)+" ");
 				}
 				out.println(param[i]);

@@ -43,7 +43,7 @@ public class AVDiarizationEval{
 	    //displayStats(lbls,inst);
 		}
     }
-    public static void writeMargin(ACRF acrf, InstanceListRepere testing,String dir, int iterNumber){
+    public static void writeMargin(ACRF acrf, InstanceListRepere testing,String dir){
     	File outputdir=new File(dir);
     	if(!outputdir.exists())
     	    outputdir.mkdir();
@@ -57,19 +57,6 @@ public class AVDiarizationEval{
     		}
         }
 
-    public static void writeMargin(ACRF acrf, InstanceListRepere testing,int iterNumber){
-    	File outputdir=new File(((InstanceRepere)testing.getInstance(0)).getDir()+"/iter"+iterNumber+"/list/");
-    	if(!outputdir.exists())
-    	    outputdir.mkdir();
-    	for (int i = 0; i < testing.size(); i++) {
-    	    InstanceRepere inst =(InstanceRepere)testing.getInstance (i);
-    	    HashMap<String, HashMap<String, Double>> margin= acrf.getMargin (inst);
-    	    writeMarginInFile(margin,inst,outputdir);
-    	    //writeAcousticMdtm(lbls,inst,iterNumber);
-    	    //writeAssocWithNewLabels(lbls,inst,iterNumber);
-    	    //displayStats(lbls,inst);
-    		}
-        }
     private static void writeMarginInFile(
 			HashMap<String, HashMap<String, Double>> margin, InstanceRepere inst,
 			File outputdir) {
