@@ -25,40 +25,19 @@ import edu.umass.cs.mallet.base.types.LabelsSequence;
 
 public class Main{
 
-  private static CommandOption.File modelFile = new CommandOption.File
-          (GenericAcrfTui.class, "model-file", "FILENAME", true, null, "Text file describing model structure.", null);
 
   private static CommandOption.File pathsfile = new CommandOption.File
           (GenericAcrfTui.class, "pathsfile", "FILENAME", true, null, "File containing paths to the different files", null);
 
-  private static CommandOption.Integer numLabelsOption = new CommandOption.Integer
-  (GenericAcrfTui.class, "num-labels", "INT", true, -1,
-          "If supplied, number of labels on each line of input file." +
-                  "  Otherwise, the token ---- must separate labels from features.", null);
-
-  private static CommandOption.String inferencerOption = new CommandOption.String
-          (GenericAcrfTui.class, "inferencer", "STRING", true, "TRP",
-                  "Specification of inferencer.", null);
 
   private static CommandOption.String maxInferencerOption = new CommandOption.String
           (GenericAcrfTui.class, "max-inferencer", "STRING", true, "TRP.createForMaxProduct()",
                   "Specification of inferencer.", null);
 
-  private static CommandOption.String trainingshows = new CommandOption.String
-          (GenericAcrfTui.class, "trainingshows", "STRING", true, "/idiap/temp/pgay/association/showsTrain",
-                  "Specification of the shows used for training.", null);
-
-  private static CommandOption.String testshows = new CommandOption.String
-          (GenericAcrfTui.class, "testshows", "STRING", true, "/idiap/temp/pgay/association/showsTest",
-                  "Specification of the shows used for training.", null);
 
   private static CommandOption.String model = new CommandOption.String
           (GenericAcrfTui.class, "model", "STRING", true, "noModel",
                   "Specification of the model to be used for testing.", null);
-
-  private static CommandOption.String iterNumber = new CommandOption.String
-          (GenericAcrfTui.class, "iterNumber", "STRING", true, "none",
-                  "iter number.", null);
 
   private static CommandOption.String evalOption = new CommandOption.String
           (GenericAcrfTui.class, "eval", "STRING", true, "LOG",
@@ -84,12 +63,8 @@ public class Main{
 	doProcessOptions (GenericAcrfTui.class, args);
 	Timing timing = new Timing ();
 	try {
-	    int itNumber=(int)(new Integer (iterNumber.value));
-	    AvDiarizationPipe pipe = new AvDiarizationPipe();
-	    
+	    AvDiarizationPipe pipe = new AvDiarizationPipe();	    
 	    String pathsFile = pathsfile.value.getAbsolutePath();
-	    String showsTestFile = testshows.value;
-	    ArrayList<String> showTest = getShows(showsTestFile);
 	    String acrfzipped = model.value;
 	    ACRF acrf = (ACRF)FileUtils.readObject(new File(acrfzipped));
 	    //acrf.getTemplates()[3].getWeights()[0].getValues()[0]=1000;
@@ -104,7 +79,7 @@ public class Main{
 	    acrf.print(System.out);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
 	    acrf.setViterbiInferencer (maxInf);
-	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getoutputDir(),itNumber);
+	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getoutputDir());
 	    //*/
 	    timing.tick ("Training");
 

@@ -15,17 +15,16 @@ import java.util.logging.Logger;
 import edu.umass.cs.mallet.base.maximize.Maximizable;
 import edu.umass.cs.mallet.base.pipe.Pipe;
 import edu.umass.cs.mallet.base.util.MalletLogger;
-
 import edu.umass.cs.mallet.base.types.*;
 
 import java.io.*;
 
 import edu.umass.cs.mallet.grmm.inference.*;
-import edu.umass.cs.mallet.grmm.learning.templates.TableTemplate;
+import edu.umass.cs.mallet.grmm.learning.templates.PairWiseTemplate;
+import edu.umass.cs.mallet.grmm.learning.templates.UnaryTemplate;
 import edu.umass.cs.mallet.grmm.types.*;
 
 import java.util.*;
-
 
 import gnu.trove.*;
 import tool4Gmms.InstanceListRepere;
@@ -1661,31 +1660,19 @@ public class ACRF implements Serializable {
 	    for (int loc = 0; loc < defaults.numLocations (); loc++)
 		out.println (" ["+defaults.indexAtLocation (loc)+"] = "+defaults.valueAtLocation (loc));
 	    ArrayList<String> features=null;
-	    if(tmpl instanceof TableTemplate)
-	    	features=((TableTemplate) tmpl).getFeatures();
+	    if(tmpl instanceof ContinuousTemplate)
+	    	features=((ContinuousTemplate) tmpl).getFeatures();
 	    SparseVector[] weights = tmpl.getWeights ();
 	    for (int assn = 0; assn < weights.length; assn++) {
 			out.println ("Weigth for the Assignment "+assn);
 			SparseVector w = weights[assn];
 			double [] param=w.getValues();
 			for(int i=0; i<param.length;i++){
-				if(tmpl instanceof TableTemplate){
-					if(i>=features.size())
-						out.print("audio "+features.get(i-features.size())+" ");
-					else
-						out.print(features.get(i)+" ");
+				if(tmpl instanceof ContinuousTemplate){
+					out.print(features.get(i)+" ");
 				}
 				out.println(param[i]);
 			}
-/*		for (int x = 0; x < w.numLocations(); x++) {
-		    int idx = w.indexAtLocation (x);
-		    if (idx == defaultFeatureIndex) {
-			out.print ("DEFAULT");
-		    } else {
-			out.print (inputAlphabet.lookupObject (idx));
-		    }
-		    out.println ("  "+w.valueAtLocation (x));
-		}*/
 	    }
 	}
     }
@@ -1874,10 +1861,11 @@ public class ACRF implements Serializable {
 	/**
 		 * 
 		 */
-		private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 	int templateSize;
 	int factor;
 	private double[][] likelihoodTable;
+	private ArrayList<String> features;
 	private HashMap<String,Integer> modelOrder;
 	public ContinuousTemplate (int factor)
 	{
@@ -1955,278 +1943,11 @@ public class ACRF implements Serializable {
 	public void setTable(double[][] table) { this.likelihoodTable =table;}
 	public  HashMap<String,Integer> getModelOrder() { return this.modelOrder;}
 	public double[][]  getTable() { return this.likelihoodTable;}
+	public ArrayList<String>  getFeatures() { return this.features;}
     }
 
     
 
-    public static class AcousticTemplate extends  ACRF.ContinuousTemplate{
-	/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-	private ArrayList<String> utterOrder;
-	private ArrayList<String> types;
-	private FeatureVectorSequence segmentNumbers;
-	private String show;
-	public AcousticTemplate(int factor){
-		super(factor);
-	}
-	 public void setAttributes(InstanceRepere inst){
-		 super.setTable(inst.getACostTable());
-		 super.setModelOrder(inst.getLabelIdx());
-		 utterOrder=inst.getSegmentNames();
-		 types=inst.getTypes();
-		 show= (String)inst.getName();
-		 segmentNumbers=(FeatureVectorSequence)inst.getData();
-	 }
-	 public void addInstantiatedCliques (UnrolledGraph graph, Instance instance){
-		InstanceRepere inst  = (InstanceRepere)instance;
-		setAttributes(inst);
-		FeatureVectorSequence fvs = (FeatureVectorSequence) inst.getData ();
-		LabelsSequence lblseq = (LabelsSequence) inst.getTarget ();
-	    for (int i = 0; i < lblseq.size(); i++) {
-			Variable v = graph.getVarForLabel (i, factor);
-			FeatureVector fv = fvs.getFeatureVector (i);
-			if(types.get(i).equals("utter")){
-				int[] indices = {0};
-			    double[] values = {fv.getValues()[0]};
-			    fv = new AugmentableFeatureVector (fv.getAlphabet(), indices,values,1,1,false,false,false);
-			    Variable[] vars = new Variable[] { v };
-			    assert v != null : "Couldn't get label factor "+factor+" time "+i;
-			    ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet (graph, this, vars, fv);
-			    graph.addClique (clique);
-			}
-	    }
-	 }
-	public void addInstantiatedCliques (ACRF.UnrolledGraph graph,
-					    FeatureVectorSequence fvs,
-					    LabelsSequence lblseq)
-	{
-		System.out.println("ACRF version is used with Instance repere, no method set yet to instantiate clique without the whole instance");
-	}
-	public ArrayList<String> getUtterOrder(){
-		return utterOrder;
-		}
-	}
-    public static class VisualTemplateSift extends  ACRF.AcousticTemplate{
-    	/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private double[][] likelihoodTable;
-    	private ArrayList<String> trackOrder;
-    	private  HashMap<String,Integer> modelOrder;
-    	private ArrayList<String> types;
-    	private FeatureVectorSequence segmentNumbers;
-    	private String show;
-        public VisualTemplateSift(int factor){
-    		super(factor);
-    	}
-    	 public void setAttributes(InstanceRepere inst){
-    		 super.setTable(inst.getVSiftCostTable());
-    		 super.setModelOrder(inst.getLabelIdx());
-    		 //likelihoodTable=inst.getVSiftCostTable();
-    		 //modelOrder=inst.getLabelIdx();
-    		 types=inst.getTypes();
-    		 trackOrder=inst.getSegmentNames();
-    		 show= (String)inst.getName();
-    		 segmentNumbers=(FeatureVectorSequence)inst.getData();
-    	 }
-    	 public boolean hasModel(int trackId)throws Exception{
-    		 for(int i=0;i<trackOrder.size();i++){
-    			 if(types.get(i).equals("faceTrack")){
-    				 FeatureVector fv = segmentNumbers.getFeatureVector (i);
-    				 int trackNumber =(int)fv.getValues()[0];
-    				 if(trackNumber==trackId){
-    					 String trackName=trackOrder.get(i);
-    					 if(modelOrder.containsValue(trackName))
-    						 return true;
-    					 else{
-    						 return false;						 
-    					 }
-
-    				 }
-    			 }
-    		 }
-    		 throw new Exception("facetrack index: "+trackId+" not found");
-    	 }
-
-    	 public void addInstantiatedCliques (ACRF.UnrolledGraph graph,
-    			    FeatureVectorSequence fvs,
-    			    LabelsSequence lblseq)
-    		{
-    			System.out.println("ACRF version is used with Instance repere, no method set yet to instantiate clique without the whole instance");
-    		}
-    	 public void addInstantiatedCliques (UnrolledGraph graph, Instance instance){
-    			InstanceRepere inst  = (InstanceRepere)instance;
-    			setAttributes(inst);
-    			FeatureVectorSequence fvs = (FeatureVectorSequence) inst.getData ();
-    			LabelsSequence lblseq = (LabelsSequence) inst.getTarget ();
-    			for (int i = 0; i < lblseq.size(); i++) {
-    				Variable v = graph.getVarForLabel (i, factor);
-    				FeatureVector fv = fvs.getFeatureVector (i);
-    				if(types.get(i).equals("faceTrack")){
-    					int[] indices = {0};
-    				    double[] values = {fv.getValues()[0]};
-    				    fv = new AugmentableFeatureVector (fv.getAlphabet(), indices,values,1,1,false,false,false);
-    				    Variable[] vars = new Variable[] { v };
-    				    assert v != null : "Couldn't get label factor "+factor+" time "+i;
-    				    ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet (graph, this, vars, fv);
-    				    graph.addClique (clique);
-    				}
-    		    }			
-    	 }
-    	public ArrayList<String> getTrackOrder(){
-    		return trackOrder;
-    	}	
-    }	
-    
-    
-   
-    
-    
-    public static class FusionTemplate extends  ACRF.ContinuousTemplate{
-	/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-	private double[][] likelihoodTable;
-	private ArrayList<String> segmentNames;
-	private FeatureVectorSequence segmentNumbers;
-	private String show;
-	private ArrayList<String> types;
-	//private HashMap<String,String> speaker2head; 
-	public FusionTemplate(int factor){
-	    super(factor);
-	}
-	public void setAttributes(InstanceRepere inst){
-		likelihoodTable=inst.getAVCostTable();
-		types=inst.getTypes();
-		show= (String)inst.getName();
-		segmentNames=inst.getSegmentNames();
-		segmentNumbers=(FeatureVectorSequence)inst.getData();
-		//speaker2head=inst.getSpeaker2Head();
-	}
-	
-	protected int initDenseWeights (InstanceList training)
-	{
-	    int numf = 1;
-	    int total = 0;
-
-	    // handle default weights
-	    templateSize = 1;// cliqueSizeFromInstance (training);//Store the template size to allocate the expectations and the constraints in the Maximizable
-	    int size =1;// we want 1 weitghs for the whole template
-	    total += allocateDefaultWeights (size);
-
-	    // and regular weights
-	    SparseVector[] newWeights = new SparseVector [size];
-	    for (int i = 0; i < size; i++) {
-		newWeights [i] = new SparseVector (new double[numf], false);
-		if (weights != null)
-		    newWeights [i].plusEqualsSparse (weights [i]);
-		total += numf;
-		logger.info ("ACRF template "+this+" weights ["+i+"] num features "+numf);
-	    }
-
-	    logger.info ("ACRF template "+this+" total num weights = "+total);
-	    weights = newWeights;
-	    return total;
-	}
-	public void addInstantiatedCliques (UnrolledGraph graph, Instance instance){
-		InstanceRepere inst  = (InstanceRepere)instance;
-		setAttributes(inst);
-		FeatureVectorSequence fvs = (FeatureVectorSequence) inst.getData ();
-		LabelsSequence lblseq = (LabelsSequence) inst.getTarget ();
-		for (int i = 0; i < lblseq.size(); i++) {//loop over all the segment to select the utterances
-			Variable u = graph.getVarForLabel (i, factor);
-			FeatureVector ufv = fvs.getFeatureVector (i);
-			if(types.get(i).equals("utter")){// if it's an utterance
-				for (int j = 0; j < lblseq.size(); j++) {//loop over all the to select the facetracks 
-					Variable ft = graph.getVarForLabel (j, factor);
-					FeatureVector ftfv = fvs.getFeatureVector (j);//get the corresponding face track indx
-					if(types.get(j).equals("faceTrack")){//if it's a face track
-						double value= likelihoodTable[(int)ufv.getValues()[0]][(int)ftfv.getValues()[0]];
-						if(value!=-9999){// value in the table !=-9999 means that there is an overlap and a score available for this couple utterance/facetrack 
-							double[] values = {value};
-							int[] indices = {0};
-							if((int)ftfv.getValues()[0]==41)
-								System.out.println((int)ufv.getValues()[0]+" "+(int)ftfv.getValues()[0]+" "+value);
-							AugmentableFeatureVector fv = new AugmentableFeatureVector (ftfv.getAlphabet(), indices,values,1,1,false,false,false);
-							Variable[] vars = new Variable[] { u, ft };
-							assert u != null : "Couldn't get label factor "+factor+" time "+i;
-							assert ft != null : "Couldn't get label factor "+factor+" time "+(i+1);
-							ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet (graph, this, vars, fv);
-							 graph.addClique (clique);
-						 }
-					 }
-				 }
-			}
-		}
-	 }
-	public void addInstantiatedCliques (ACRF.UnrolledGraph graph, FeatureVectorSequence fvs, LabelsSequence lblseq)
-	{	
-		System.out.println("ACRF version is used with Instance repere, no method set yet to instantiate clique without the whole instance");
-	}
-	public AbstractTableFactor computeFactor (UnrolledVarSet clique)
-	{
-	    Matrix phi = createFactorMatrix(clique);//enable to get the labels from the matrix position
-	    //PairWiseMatrix phi= new PairWiseMatrix(clique.varDimensions ());
-	    SparseVector[] weights = getWeights();
-	    String outcome1,outcome2;
-	    Variable v;
-	    AugmentableFeatureVector fv;
-	    SparseVector w = weights[0];
-	    double[] param=w.getValues();
-	    double[][] ff = new double[phi.numLocations()][param.length]; //varDimensions ()[0] is the number of labels
-	    for (int loc = 0; loc < phi.numLocations(); loc++) {
-			int[] indices = new int[2];
-			int idx = phi.indexAtLocation(loc);
-			phi.singleToIndices(idx,indices);
-			v = clique.getVars()[0];
-			outcome1=v.getLabelAlphabet().lookupLabel(indices[0]).toString();
-			v = clique.getVars()[1];
-			outcome2=v.getLabelAlphabet().lookupLabel(indices[1]).toString();
-			double x;
-			double[] values = new double[param.length];
-			x=clique.fv.getValues()[0];
-			for(int i=0;i<values.length;i++)
-			    values[i]=0;
-			if(outcome1.equals(outcome2))
-			    values[0]=x;
-			else{
-			    values[0]=-x;
-			}
-			/*if(speaker2head.containsKey(outcome1))
-			  if( !outcome2.equals(speaker2head.get(outcome1)) && speaker2head.containsValue(outcome2))
-			  values[1]=1;
-			  if(speaker2head.containsKey(outcome2))
-			  if(!outcome1.equals(speaker2head.get(outcome2))  && !speaker2head.containsValue(outcome1))
-			  values[1]=1;
-			  if(speaker2head.containsKey(outcome1))
-			  if(outcome2.equals(speaker2head.get(outcome1)))
-			  values[2]=1;
-			  if (speaker2head.containsKey(outcome2))
-			  if(outcome1.equals(speaker2head.get(outcome2)) )
-			  values[2]=1;
-			*/
-					
-			double dp=0;
-			for(int i=0; i<values.length;i++){
-			    dp+=param[i]*values[i];
-			    ff[loc][i]=values[i];
-			}
-			//		System.out.println("outcome 1: "+outcome1+" outcome2: "+outcome2+" feature: "+x+" et de N(): "+values[0]+" dp: "+dp+" default: "+getDefaultWeight(idx));
-			dp += getDefaultWeight(idx);
-			phi.setValueAtLocation(loc, dp);
-	    }
-	    AbstractTableFactor ptl = new LogTableFactor(clique);
-	    ptl.setValues(phi);
-	    clique.setFf(ff);
-	    return ptl;
-	}
-    }
- 
-    
     
     
     

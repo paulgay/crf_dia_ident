@@ -26,37 +26,33 @@ import edu.umass.cs.mallet.base.util.Random;
 import edu.umass.cs.mallet.base.util.DoubleList;
 import edu.umass.cs.mallet.base.types.Instance;
 import edu.umass.cs.mallet.base.types.InstanceList;
+
 import java.util.logging.*;
 import java.io.*;
 public class InstanceListRepere extends InstanceList
 {
     Pipe pipe;
     ArrayList instances;
-    HashSet<String> shotfeatures;
-	private HashSet<String> captionfeatures;
-	private HashSet<String> features;
+	private HashSet<String> unaryFeatures,pairWiseFeatures;
     public InstanceListRepere (Pipe pipe)
     {
 	this.pipe=pipe;
 	this.instances = new ArrayList (10);
-	shotfeatures=new HashSet<String> ();
-	captionfeatures=new HashSet<String>();
-	features=new HashSet<String>();
+	unaryFeatures=new HashSet<String>();
+	pairWiseFeatures=new HashSet<String>();
     }
     public void add (PipeInputIterator pi)
     {
 		while (pi.hasNext()) {
 		    InstanceRepere carrier = ((InstanceFactory)pi).nextInstance();
 		    carrier.setPipe(this.pipe);
-		    if(carrier.useTable())
-		    	features.addAll(carrier.getFeaturesSet());
+		    if(carrier.useUnary())
+		    	unaryFeatures.addAll(carrier.getUnaryFeaturesSet());
+		    if(carrier.usePairWise())
+		    	pairWiseFeatures.addAll(carrier.getPairWiseFeaturesSet());
 		    add (carrier);
 		}
     }
-    public HashSet<String>  getShotFeatures(){ return shotfeatures;}
-	public HashSet<String> getCaptionFeatures() { return captionfeatures;	}
-	public HashSet<String> getFeatures(){ return features;}
-	public int getNumFeatures() {
-		return features.size();
-	}
+	public HashSet<String> getUnaryFeatures(){ return unaryFeatures;}
+	public HashSet<String> getPairWiseFeatures() { return pairWiseFeatures;	}
 }

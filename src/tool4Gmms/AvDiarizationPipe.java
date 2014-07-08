@@ -53,18 +53,17 @@ public class AvDiarizationPipe extends Pipe implements Serializable
     public Instance pipe (Instance inst)
     {
 	InstanceRepere carrier = (InstanceRepere)inst;
-	ArrayList<Integer> segmentNumbers = (ArrayList<Integer>)carrier.getData();
 	ArrayList<String> segmentNames = (ArrayList<String>)carrier.getTarget();
-	FeatureVector[] featureSequence = new FeatureVector[segmentNumbers.size()];
-	Labels[] lbls = new Labels[segmentNumbers.size()];
+	FeatureVector[] featureSequence = new FeatureVector[segmentNames.size()];
+	Labels[] lbls = new Labels[segmentNames.size()];
 	this.labelDicts = new ArrayList ();// reinitialisation  added for the case several instances do not share their vocabulary
 	Alphabet alpha;
 	//The feature are continuous, so we're tying the parameters over all the possible feature values. the dictionnary is usually used to have an overview of the possible features values and to decide how many weitghs are used. But in our case, there is only 1 weight for all the possible values, so there is just one "fake entry" in the dictionnary.
 	String fakeEntry="noDictionnary";
-	for (int i = 0; i < segmentNumbers.size(); i++){
+	for (int i = 0; i < segmentNames.size(); i++){
 	    ArrayList thisLabels = new ArrayList ();
-	    Integer number =  segmentNumbers.get(i);
-	    double[] values = {number.doubleValue() };
+	    //Integer number =  segmentNumbers.get(i);
+	    double[] values = {0};//{number.doubleValue() };
 	    int[] indices = { 0 };
 	    alpha = (Alphabet)getDataAlphabet();
 	    alpha.lookupIndex(fakeEntry);// An entry is added so that the size of the feature's alphabet is one. I do not use alphabet with continuous feature but the size corresponds to the number of parameters.
@@ -90,8 +89,8 @@ public class AvDiarizationPipe extends Pipe implements Serializable
     /*
      * there can be severals type of label. Each one must have it's own alphabet.
      * So if there is more label types than alphabet, new alphabets are added. this probably assumes
-     *  that the labels should be always written in the data file in the same order (in the same column).
-     *   Because lvl (which corresponds to the token number) as an index to choose the alphabet from labelDicts.
+     * that the labels should be always written in the data file in the same order (in the same column).
+     * Because lvl (which corresponds to the token number) as an index to choose the alphabet from labelDicts.
      */
     {
 	while (labelDicts.size() <= lvl) {

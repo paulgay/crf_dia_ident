@@ -7,9 +7,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import edu.umass.cs.mallet.base.types.InstanceList;
-import edu.umass.cs.mallet.base.types.Instance;
 import edu.umass.cs.mallet.grmm.inference.Inferencer;
 import edu.umass.cs.mallet.grmm.learning.GenericAcrfTui;
 import edu.umass.cs.mallet.grmm.learning.ACRF;
@@ -17,11 +14,6 @@ import edu.umass.cs.mallet.grmm.learning.ACRFTrainer;
 import edu.umass.cs.mallet.grmm.learning.ACRFEvaluator;
 import edu.umass.cs.mallet.grmm.learning.AcrfSerialEvaluator;
 import edu.umass.cs.mallet.grmm.learning.MultiSegmentationEvaluatorACRF;
-import edu.umass.cs.mallet.base.types.FeatureVector;
-import edu.umass.cs.mallet.base.types.FeatureVectorSequence;
-import edu.umass.cs.mallet.base.types.Label;
-import edu.umass.cs.mallet.base.types.Labels;
-import edu.umass.cs.mallet.base.types.LabelsSequence;
 
 public class Train{
 
@@ -45,21 +37,9 @@ public class Train{
           (GenericAcrfTui.class, "max-inferencer", "STRING", true, "TRP.createForMaxProduct()",
                   "Specification of inferencer.", null);
 
-  private static CommandOption.String trainingshows = new CommandOption.String
-          (GenericAcrfTui.class, "trainingshows", "STRING", true, "/idiap/temp/pgay/association/showsTrain",
-                  "Specification of the shows used for training.", null);
-
-  private static CommandOption.String testshows = new CommandOption.String
-          (GenericAcrfTui.class, "testshows", "STRING", true, "/idiap/temp/pgay/association/showsTest",
-                  "Specification of the shows used for training.", null);
-
   private static CommandOption.String model = new CommandOption.String
           (GenericAcrfTui.class, "model", "STRING", true, "noModel",
                   "Specification of the model to be used for testing.", null);
-
-  private static CommandOption.String iterNumber = new CommandOption.String
-          (GenericAcrfTui.class, "iterNumber", "STRING", true, "none",
-                  "iter number.", null);
 
   private static CommandOption.String evalOption = new CommandOption.String
           (GenericAcrfTui.class, "eval", "STRING", true, "LOG",
@@ -86,15 +66,12 @@ public class Train{
 	Timing timing = new Timing ();
 	try {
 	    //int iteNumber=(int)(new Integer (iterNumber.value));
-	    AvDiarizationPipe pipe = new AvDiarizationPipe();
-	    String showsTrainFile = trainingshows.value;
-        ArrayList<String> showTrain = getShows(showsTrainFile);
+	    AvDiarizationPipe pipe = new AvDiarizationPipe();//collect the labels and the features from the instances to build the alphabets
 	    String pathsFile = pathsfile.value.getAbsolutePath();
 	    ACRF.Template[] tmpls = parseModelFile (modelFile.value);
-	    int itNumber=(int)(new Integer (iterNumber.value));
-	    InstanceFactory inputTrainingPipe = new InstanceFactory(pathsFile);
+	    InstanceFactory inputTrainingPipe = new InstanceFactory(pathsFile);//contains the methods to parse the files
 	    InstanceListRepere training = new InstanceListRepere(pipe);
-	    training.add(inputTrainingPipe);
+	    training.add(inputTrainingPipe);//call the methods from the instanceFactory to create the instances
 	    ACRFEvaluator eval = createEvaluator (evalOption.value);
 	    Inferencer inf = createInferencer (inferencerOption.value);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
