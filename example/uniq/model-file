@@ -1,0 +1,3 @@
+new UnaryTemplate()
+new PairWiseTemplate()
+new UniquenessTemplate()

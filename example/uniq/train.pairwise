@@ -1,0 +1,7 @@
+pairwise_f1 s1 s2 1
+pairwise_f1 s2 s3 1
+pairwise_f1 s4 s5 1
+pairwise_f1 s5 s6 1
+pairwise_f1 s4 s6 1
+pairwise_f1 s1 s6 -1
+pairwise_f1 s2 s5 -1

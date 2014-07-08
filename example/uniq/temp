@@ -1,0 +1,3 @@
+../../src/edu/umass/cs/mallet/grmm//learning/ACRF.java:240:	    logger.info ("ACRF template "+this+" total num weights = "+total);
+../../src/edu/umass/cs/mallet/grmm//learning/ACRF.java:285:	    logger.info ("ACRF template "+this+" total num weights = "+total);
+../../src/edu/umass/cs/mallet/grmm//learning/ACRF.java:1900:	    logger.info ("ACRF template "+this+" total num weights = "+total);
