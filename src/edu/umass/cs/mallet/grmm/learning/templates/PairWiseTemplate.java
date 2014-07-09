@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import com.sun.xml.internal.fastinfoset.sax.Features;
 
 import tool4Gmms.InstanceListRepere;
 import tool4Gmms.InstanceRepere;

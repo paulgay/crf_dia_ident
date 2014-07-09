@@ -2,10 +2,8 @@ package edu.umass.cs.mallet.grmm.learning.templates;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
-import com.sun.xml.internal.fastinfoset.sax.Features;
 
 import tool4Gmms.InstanceListRepere;
 import tool4Gmms.InstanceRepere;
@@ -16,7 +14,6 @@ import edu.umass.cs.mallet.base.types.Instance;
 import edu.umass.cs.mallet.base.types.InstanceList;
 import edu.umass.cs.mallet.base.types.LabelsSequence;
 import edu.umass.cs.mallet.base.types.Matrix;
-import edu.umass.cs.mallet.base.types.Matrixn;
 import edu.umass.cs.mallet.base.types.SparseVector;
 import edu.umass.cs.mallet.grmm.learning.ACRF;
 import edu.umass.cs.mallet.grmm.learning.ACRF.UnrolledGraph;
