@@ -32,7 +32,6 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	lists=new HashMap<String,String>();
     	unaries= new HashMap<String,ArrayList<String>>();
     	pairs = new HashMap<String,ArrayList<String>>();
-    	templates = new HashSet<String>(); 
     	uniqConstraints=new HashMap<String,String>(); 
     	while((line = in.readLine())!=null){
     	    tokens=line.split(pattern);
@@ -42,19 +41,16 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	    case 1: lists.put(show, tokens[1]);
     	    				break;
     	    case 2: if(!unaries.containsKey(show))
-    	    	templates.add("unary");
-    	    	unaries.put(show, new ArrayList<String>());
+    	    			unaries.put(show, new ArrayList<String>());
     	    	ArrayList<String> unariesThisShow = unaries.get(show);
     	    	unariesThisShow.add(tokens[1]);
     	    break;
     	    case 3 :if(!pairs.containsKey(show))
     	    	pairs.put(show, new ArrayList<String>());
-    	    	templates.add("pairwise");
     	    	ArrayList<String> pairsThisShow = pairs.get(show);
     	    	pairsThisShow.add(tokens[1]);
     	    break;
     	    case 4:uniqConstraints.put(show, tokens[1]);
-    	    templates.add("uniq");
     	    break;
     	    case 5:outputDir=tokens[1];
     	    break;
