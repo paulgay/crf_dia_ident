@@ -115,8 +115,12 @@ public class UnaryTemplate extends ACRF.ContinuousTemplate{
     		outcome=v.getLabelAlphabet().lookupLabel(indices[0]).toString();
         	int modIdx = (int)super.getModelOrder().get(outcome);
         	for(int i=0;i<features.size();i++){
-        		double[][] table = tables.get(features.get(i));
-        		values[i]=table[segIdx][modIdx];
+                        if(tables.containsKey(features.get(i))){
+        		    double[][] table = tables.get(features.get(i));
+        		    values[i]=table[segIdx][modIdx];
+                        }
+                        else
+                           values[i]=0;
         	}
     		double dp=0;
 			dp += getDefaultWeight(idx);
