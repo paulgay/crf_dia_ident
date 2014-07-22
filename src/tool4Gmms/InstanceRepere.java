@@ -68,7 +68,7 @@ public class InstanceRepere extends Instance{
 			for(Map.Entry<String, double[][]> entry : unaries.entrySet()){
 				String key = entry.getKey();
 				double[][] value = entry.getValue();
-				unaries.put(key, value);
+				this.unaries.put(key, value);
 			}
 		}
 	}
