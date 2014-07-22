@@ -98,4 +98,9 @@ public class AVDiarizationEval{
 	    e.printStackTrace();
 	}
     }
+	public static void writeMarginAndResults(ACRF acrf,
+			InstanceListRepere testing, String getoutputDir) {
+		// TODO Auto-generated method stub
+		
+	}
 }

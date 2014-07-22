@@ -79,8 +79,8 @@ public class Main{
 	    acrf.print(System.out);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
 	    acrf.setViterbiInferencer (maxInf);
-	    AVDiarizationEval.writeMargin(acrf,testing,inputTestingPipe.getoutputDir());
 	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getoutputDir());
+	    AVDiarizationEval.writeMargin(acrf,testing,inputTestingPipe.getoutputDir());
 	    //*/
 	    timing.tick ("Training");
 
