@@ -141,11 +141,13 @@ public class PairWiseTemplate2 extends ACRF.ContinuousTemplate{
         				values[i]=1;
         			else
         				values[i]=0;
-        		double[][] table = tables.get(features.get(i));
-        		if(outcome1.equals(outcome2))
-        			values[i]=table[seg1Idx][seg2Idx];
-        		else
-        			values[i]=-table[seg1Idx][seg2Idx];
+        		else{
+	        		double[][] table = tables.get(features.get(i));
+	        		if(outcome1.equals(outcome2))
+	        			values[i]=table[seg1Idx][seg2Idx];
+	        		else
+	        			values[i]=-table[seg1Idx][seg2Idx];
+	        	}
         	}
     		double dp=0;
 			dp += getDefaultWeight(idx);
