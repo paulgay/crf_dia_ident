@@ -19,6 +19,7 @@ public class InstanceRepere extends Instance{
     Object name;
 	private ArrayList<ArrayList<String>> uniqPairs;
 	private String outputFile;
+	private HashSet<String> hungLabels;
 
     public void setPipe(Pipe p){
     	if (!locked){
@@ -159,5 +160,7 @@ public class InstanceRepere extends Instance{
 			out.write(pair.get(0)+" "+pair.get(1)+"\n");
 		}
 	}
+	public HashSet<String> getHungLabels() {return hungLabels;	}
+	public void setHungLabels(HashSet<String> hungLabels) {this.hungLabels=hungLabels;	}
 }
 	

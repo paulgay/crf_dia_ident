@@ -9,16 +9,13 @@ import edu.umass.cs.mallet.grmm.learning.templates.UnaryTemplate;
 import edu.umass.cs.mallet.grmm.learning.templates.UniquenessTemplate;
 public class InstanceFactory  extends AbstractPipeInputIterator{
 
-    private HashMap<String,String> association;
     private	ArrayList<String> segmentNames=new ArrayList<String> ();
     private	ArrayList<String> labels= new ArrayList<String> ();
     private	ArrayList<Integer> segmentIdx =new ArrayList<Integer> ();
     private	ArrayList<String> types= new ArrayList<String> ();
     private	HashMap<String,Integer> labelIdx;
-    private double[][] aVCostTable;
     private double[][] aCostTable;
-    private HashSet<String> templates;
-    private     HashMap<String,String> lists; //show listFile
+    private     HashMap<String,String> lists,hungFiles; //show listFile
     private     HashMap<String,String> uniqConstraints; //show listFile
     private     HashMap<String,ArrayList<String>> unaries, pairs; //show, set of filename with unary features
 	private Iterator<Entry<String, String>> it;
@@ -30,6 +27,7 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	BufferedReader in = new BufferedReader(new FileReader(configfile));
     	String show="";
     	lists=new HashMap<String,String>();
+    	hungFiles=new HashMap<String,String>();
     	unaries= new HashMap<String,ArrayList<String>>();
     	pairs = new HashMap<String,ArrayList<String>>();
     	uniqConstraints=new HashMap<String,String>(); 
@@ -56,6 +54,8 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	    break;
     	    case 6:logdir=tokens[1];
     	    break;
+    	    case 7:hungFiles.put(show,tokens[1]);
+    	    break;
     	    default: break;
     	    }
     	}
@@ -69,12 +69,12 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
     	String line, pattern="[ ]+";
     	String[] tokens;
     	BufferedReader in = new BufferedReader(new FileReader(lists.get(show)));
-    	int lIdx=0,sIdx=0;
+    	int lIdx=0;
     	while((line = in.readLine())!=null){
     		tokens=line.split(pattern);
     		labels.add(tokens[0]);
+    		
     		segmentNames.add(tokens[1]);
-    		sIdx+=1;
     		if(!labelIdx.containsKey(tokens[0])){
     			labelIdx.put(tokens[0],new Integer(lIdx));
     			lIdx+=1;
@@ -154,6 +154,21 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 		in.close();
 		return uniqPairs;
 	}
+    private HashSet<String> getHungAsso(String hungFile) throws IOException {
+    	HashSet<String> hungLabels=new HashSet<String>();
+		String line;
+		String pattern="[ ]+";
+		String[] tokens;
+		BufferedReader in = new BufferedReader(new FileReader(hungFile));
+		while((line = in.readLine())!=null){
+    	    tokens=line.split(pattern);
+    	    hungLabels.add(tokens[0]);
+		}
+		in.close();
+    	
+		return hungLabels;
+	}
+
     private HashMap<String, double[][]> parseUnaries(String featFile) throws NumberFormatException, IOException {
 		HashMap<String, double[][]> tables =new HashMap<String, double[][]>();
 		String line;
@@ -228,6 +243,10 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	    	if(!logdir.equals("")){
 	    		carrier.dumpUniq(logdir+"/"+currentShow+"-uniq");	    		
 	    	}
+	    if(hungFiles.containsKey(currentShow)){
+	    	System.out.println("parsing file: "+hungFiles.get(currentShow));
+	    	carrier.setHungLabels(getHungAsso(hungFiles.get(currentShow)));
+	    }
 
 	    }
 	    carrier.setName(currentShow);
@@ -237,9 +256,8 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	return carrier;
     }
 	
-    public double[][] getAtable(){return aCostTable;}
+	public double[][] getAtable(){return aCostTable;}
     public static void main(String args[]){
-	double[][] q={{1,1,2,2},{4,5,6,7}};
     }
 	public String getoutputDir() {
 		return outputDir;
