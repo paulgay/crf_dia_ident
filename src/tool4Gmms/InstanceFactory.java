@@ -243,12 +243,12 @@ public class InstanceFactory  extends AbstractPipeInputIterator{
 	    	if(!logdir.equals("")){
 	    		carrier.dumpUniq(logdir+"/"+currentShow+"-uniq");	    		
 	    	}
+	    }
 	    if(hungFiles.containsKey(currentShow)){
 	    	System.out.println("parsing file: "+hungFiles.get(currentShow));
 	    	carrier.setHungLabels(getHungAsso(hungFiles.get(currentShow)));
 	    }
 
-	    }
 	    carrier.setName(currentShow);
 	    //carrier.dumpPTable();
 	}
