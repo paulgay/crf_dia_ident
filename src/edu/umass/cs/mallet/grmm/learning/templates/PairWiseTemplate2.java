@@ -130,10 +130,12 @@ public class PairWiseTemplate2 extends ACRF.ContinuousTemplate{
 				vlabel=outcome2;
     			alabel=outcome1;
 			}
-    		if(vlabel.matches("_"))
-    			vlabel=vlabel.split("_")[0];
-    		if(alabel.matches("_"))
-    			alabel=alabel.split("_")[1];
+    		if(vlabel.matches("S"))
+	    		if(vlabel.matches("_"))
+	    			vlabel=vlabel.split("_")[0];
+    		if(alabel.matches("S"))
+	    		if(alabel.matches("_"))
+	    			alabel=alabel.split("_")[1];
     		avlabel=vlabel+"_"+alabel;
         	for(int i=0;i<features.size();i++){
         		if(features.get(i).equals("hung"))
