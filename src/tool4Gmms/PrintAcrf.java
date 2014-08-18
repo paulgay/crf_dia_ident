@@ -23,62 +23,14 @@ import edu.umass.cs.mallet.base.types.Label;
 import edu.umass.cs.mallet.base.types.Labels;
 import edu.umass.cs.mallet.base.types.LabelsSequence;
 
-public class TrainIdent{
+public class PrintAcrf{
 
-  private static CommandOption.File modelFile = new CommandOption.File
-          (GenericAcrfTui.class, "model-file", "FILENAME", true, null, "Text file describing model structure.", null);
 
-  private static CommandOption.File trainFile = new CommandOption.File
-          (GenericAcrfTui.class, "training", "FILENAME", true, null, "File containing training data.", null);
 
-  private static CommandOption.File testFile = new CommandOption.File
-          (GenericAcrfTui.class, "testing", "FILENAME", true, null, "File containing testing data.", null);
-
-  private static CommandOption.Integer numLabelsOption = new CommandOption.Integer
-  (GenericAcrfTui.class, "num-labels", "INT", true, -1,
-          "If supplied, number of labels on each line of input file." +
-                  "  Otherwise, the token ---- must separate labels from features.", null);
-
-  private static CommandOption.String inferencerOption = new CommandOption.String
-          (GenericAcrfTui.class, "inferencer", "STRING", true, "TRP",
-                  "Specification of inferencer.", null);
-
-  private static CommandOption.String maxInferencerOption = new CommandOption.String
-          (GenericAcrfTui.class, "max-inferencer", "STRING", true, "TRP.createForMaxProduct()",
-                  "Specification of inferencer.", null);
-
-  private static CommandOption.String trainingshows = new CommandOption.String
-          (GenericAcrfTui.class, "trainingshows", "STRING", true, "/idiap/temp/pgay/association/showsTrain",
-                  "Specification of the shows used for training.", null);
-
-  private static CommandOption.String testshows = new CommandOption.String
-          (GenericAcrfTui.class, "testshows", "STRING", true, "/idiap/temp/pgay/association/showsTest",
-                  "Specification of the shows used for training.", null);
 
   private static CommandOption.String model = new CommandOption.String
           (GenericAcrfTui.class, "model", "STRING", true, "noModel",
                   "Specification of the model to be used for testing.", null);
-
-  private static CommandOption.String iterNumber = new CommandOption.String
-          (GenericAcrfTui.class, "iterNumber", "STRING", true, "none",
-                  "iter number.", null);
-
-  private static CommandOption.String evalOption = new CommandOption.String
-          (GenericAcrfTui.class, "eval", "STRING", true, "LOG",
-                  "Evaluator to use.  Java code grokking performed.", null);
-
-  static CommandOption.Boolean cacheUnrolledGraph = new CommandOption.Boolean
-          (GenericAcrfTui.class, "cache-graphs", "true|false", true, false,
-                  "Whether to use memory-intensive caching.", null);
-    
-  static CommandOption.Boolean useTokenText = new CommandOption.Boolean
-          (GenericAcrfTui.class, "use-token-text", "true|false", true, false,
-                  "Set this to true if first feature in every list is should be considered the text of the " +
-                          "current token.  This is used for NLP-specific debugging and error analysis.", null);
-
-  static CommandOption.Integer randomSeedOption = new CommandOption.Integer
-	(GenericAcrfTui.class, "random-seed", "INTEGER", true, 0,
-	 "The random seed for randomly selecting a proportion of the instance list for training", null);
 
 
   private static BshInterpreter interpreter = setupInterpreter ();
@@ -87,40 +39,9 @@ public class TrainIdent{
 	doProcessOptions (GenericAcrfTui.class, args);
 	Timing timing = new Timing ();
 	try {
-	    //int iteNumber=(int)(new Integer (iterNumber.value));
-	    AvDiarizationPipe pipe = new AvDiarizationPipe();
-	    String showsTrainFile = trainingshows.value;
-        ArrayList<String> showTrain = getShows(showsTrainFile);
-	    String trainingDataDir = trainFile.value.getAbsolutePath();
-	    ACRF.Template[] tmpls = parseModelFile (modelFile.value);
-	    //MakeTableFrValues inputTrainingPipe = new MakeTableFrValues(trainingDataDir,-1,showTrain,tmpls);
-	    int itNumber=(int)(new Integer (iterNumber.value));
-	    InstanceFactoryIdent inputTrainingPipe = new InstanceFactoryIdent(trainingDataDir,itNumber,showTrain,tmpls);
-	    InstanceListRepere training = new InstanceListRepere(pipe);
-	    training.add(inputTrainingPipe);
-	    
-	    
-	    ACRFEvaluator eval = createEvaluator (evalOption.value);
-	    Inferencer inf = createInferencer (inferencerOption.value);
-	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
-	    ACRF acrf = new ACRF (pipe, tmpls);//ACRF.java l64
-	    acrf.setInferencer (inf);
-	    acrf.setViterbiInferencer (maxInf);
-	    ACRFTrainer trainer = new ACRFTrainer ();//empty constructor
-	    trainer.train (acrf, training, null, null, eval, 9999);
-	    //trainer.train (acrf, training, null, testing, eval, 9999);//ACRFTrainer l84
-	    FileUtils.writeGzippedObject (new File (model.value), acrf);
-	    timing.tick ("Training");
-	    System.out.println ("Total time (ms) = " + timing.elapsedTime ());
-/*    
-	    String testingDataDir = testFile.value.getAbsolutePath();
-	    String showsTestFile = testshows.value;
-	    ArrayList<String> showTest = getShows(showsTestFile);
-	    MakeTableFrValues inputTestingPipe = new MakeTableFrValues(testingDataDir,-1,showTest,tmpls);
-	    InstanceListRepere testing = new InstanceListRepere(pipe);
-	    testing.add(inputTestingPipe);
-	    AVDiarizationEval.writeResults(acrf,testing,itNumber);
-*/
+	    String acrfzipped = model.value;
+	    ACRF acrf = (ACRF)FileUtils.readObject(new File(acrfzipped));
+	    acrf.print(System.out);
 	}
 	catch(Exception e){System.out.println(e); e.printStackTrace();}
     }
