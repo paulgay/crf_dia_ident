@@ -146,7 +146,7 @@ public class PairWiseTemplateNotSim extends ACRF.ContinuousTemplate{
         			else
         				values[i]=0;
         		else{
-	        		double[][] table = tables.get(features.get(i));
+	        		double[][] table = tables.get(features.get(i).split("_")[0]);
 	        		if(outcome1.equals(outcome2)){
 	        			values[0]=table[seg1Idx][seg2Idx];
 	        			values[1]=0;
