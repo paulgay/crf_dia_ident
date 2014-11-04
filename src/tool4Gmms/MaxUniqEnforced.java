@@ -23,7 +23,7 @@ import edu.umass.cs.mallet.base.types.Label;
 import edu.umass.cs.mallet.base.types.Labels;
 import edu.umass.cs.mallet.base.types.LabelsSequence;
 
-public class Main{
+public class MaxUniqEnforced{
 
 
   private static CommandOption.File pathsfile = new CommandOption.File

@@ -907,8 +907,10 @@ public class ACRF implements Serializable {
 		// Vertices count could be zero if all nodes pruned out of model.
 		//  In that case, don't bother calling Viterbi, and if statement below
 		//  will ensure that the LabelsSequence returned is arbitrary.
+	    boolean converged=false;
 		if (unrolled.numVariables () != 0) {
-		    viterbi.computeMarginals (unrolled);
+		    viterbi.computeMarginals(unrolled);
+		    //viterbi.computeMarginalsAndSayIfconverged (unrolled);
 		}
 
 		// And change it into a LabelsSequence
@@ -948,6 +950,73 @@ public class ACRF implements Serializable {
 		return margin;
 	}
 
+	public HashMap<String,HashMap<String, Double>> getMarginAware(InstanceRepere inst) {
+		// Compute the MAP assignment
+		HashMap<String,HashMap<String, Double>> margin = new HashMap<String,HashMap<String, Double>>(); 
+		// Vertices count could be zero if all nodes pruned out of model.
+		//  In that case, don't bother calling Viterbi, and if statement below
+		//  will ensure that the LabelsSequence returned is arbitrary.
+		
+		UnrolledGraph unrolled=null;
+		List cliques ;
+	    boolean converged=false;
+		int idx=0;
+		int cliqueSizeMax[]= {10, 5, 3,2,1}; 
+	    while(!converged  && idx<cliqueSizeMax.length){
+			unrolled = unroll (inst);
+			cliques =unrolled.getCliques();
+			if (unrolled.numVariables () != 0) {
+			    converged=((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
+				if(! converged)
+					if(inst.removePairLinks(cliqueSizeMax[idx])){
+						System.out.println("No convergence, I removed some uniq links , biggest clique:"+cliqueSizeMax[idx]);
+						idx+=1;
+					}
+		    }
+		}
+	    if(!converged){
+			unrolled  = unroll (inst);
+			cliques=unrolled.getCliques();
+			((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
+	    }
+	    
+	    //viterbi.computeMarginalsAndSayIfconverged (unrolled);
+		// And change it into a LabelsSequence
+
+		int numFactors = unrolled.getNumFactors ();
+		int maxTime = unrolled.getMaxTime ();
+		//Labels[] lbls = new Labels [maxTime];
+		for (int t = 0; t < maxTime; t++) {
+		    //Label[] theseLabels = new Label [numFactors];
+		    for (int i = 0; i < numFactors; i++) {
+			Variable var = unrolled.lookupVarForLabel (t, i);
+			int maxidx;
+			if (var != null) {
+				HashMap<String,Double> margs=new HashMap<String,Double>(); 
+			    Factor marg = viterbi.lookupMarginal (var);
+			    for(int l=0;l<var.getLabelAlphabet().size();l++)
+			    	margs.put(unrolled.getOutputAlphabet(i).lookupLabel(l).toString(), new Double( ((DiscreteFactor) marg).valueAtLocation(l)));
+			    
+			    	//margs.put(var.getLabelAlphabet().lookupLabel(l).toString(), ((DiscreteFactor) marg).valueAtLocation(l));
+			    margin.put(inst.getSegmentNames().get(t),margs);			    
+			    maxidx = marg.argmax ();
+			} else {
+			    // Unrolled graph does not contain variable.  This happens when the templates for var assign no neighbors
+			    //  and no potentials, so that var is pruned.
+			    if (warnOnNoMax) {
+				logger.warning ("Could not determine max label for instance "+inst+" time "+t+" factor "+i+" [...and probably others...]");
+				warnOnNoMax = false;
+			    }
+
+			    maxidx = 0;
+			}
+			//				System.out.println("Max idx "+maxidx+" ("+var.getLabelAlphabet().lookupLabel (maxidx)+")\n"+marg+"\n\n");
+			//theseLabels [i] = unrolled.getOutputAlphabet(i).lookupLabel (maxidx);
+		    }
+		    //lbls [t] = new Labels (theseLabels);
+		}		
+		return margin;
+	}
     
     
     public UnrolledGraph unroll (Instance inst)

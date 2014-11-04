@@ -30,26 +30,23 @@ public class AVDiarizationEval{
 	    writeMapping(lbls,inst,outputdir);
 		}
     }
-    public static void writeResults(ACRF acrf, InstanceListRepere testing, int iterNumber){
-	File outputdir=new File(((InstanceRepere)testing.getInstance(0)).getDir()+"/iter"+iterNumber+"/list/");
-	if(!outputdir.exists())
-	    outputdir.mkdir();
-	for (int i = 0; i < testing.size(); i++) {
-	    InstanceRepere inst =(InstanceRepere)testing.getInstance (i);
-	    LabelsSequence lbls= acrf.getBestLabels (inst);
-	    writeMapping(lbls,inst,outputdir);
-	    //writeAcousticMdtm(lbls,inst,iterNumber);
-	    //writeAssocWithNewLabels(lbls,inst,iterNumber);
-	    //displayStats(lbls,inst);
-		}
-    }
+    public static void writeResultsUniqEnforce(ACRF acrf, InstanceListRepere testing,String dir){
+    	File outputdir=new File(dir);
+    	if(!outputdir.exists())
+    	    outputdir.mkdir();
+    	for (int i = 0; i < testing.size(); i++) {
+    	    InstanceRepere inst =(InstanceRepere)testing.getInstance (i);
+    	    LabelsSequence lbls= acrf.getBestLabels (inst);
+    	    writeMapping(lbls,inst,outputdir);
+    		}
+        }
     public static void writeMargin(ACRF acrf, InstanceListRepere testing,String dir){
     	File outputdir=new File(dir);
     	if(!outputdir.exists())
     	    outputdir.mkdir();
     	for (int i = 0; i < testing.size(); i++) {
     	    InstanceRepere inst =(InstanceRepere)testing.getInstance (i);
-    	    HashMap<String, HashMap<String, Double>> margin= acrf.getMargin (inst);
+    	    HashMap<String, HashMap<String, Double>> margin= acrf.getMarginAware (inst);
     	    writeMarginInFile(margin,inst,outputdir);
     	    //writeAcousticMdtm(lbls,inst,iterNumber);
     	    //writeAssocWithNewLabels(lbls,inst,iterNumber);

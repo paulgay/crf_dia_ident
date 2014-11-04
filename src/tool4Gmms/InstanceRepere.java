@@ -5,13 +5,17 @@ import edu.umass.cs.mallet.base.pipe.Pipe;
 import edu.umass.cs.mallet.base.types.FeatureVectorSequence;
 import edu.umass.cs.mallet.base.types.FeatureVector;
 
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.Pseudograph;
+import org.jgrapht.alg.BronKerboschCliqueFinder;
+
 import java.util.*;
 import java.io.*;
 public class InstanceRepere extends Instance{
     private String dir;
     private ArrayList<String> segmentNames;
     private HashMap<String,ArrayList<String>> features;
-    private HashMap<String,double[][]> unaries, pairWise, uniq;
+    private HashMap<String,double[][]> unaries, pairWise;
     private double[][] shots;
     private HashMap<String,Integer> labelIdx;
     boolean locked = false;
@@ -20,7 +24,7 @@ public class InstanceRepere extends Instance{
 	private ArrayList<ArrayList<String>> uniqPairs;
 	private String outputFile;
 	private HashSet<String> hungLabels;
-
+	Pseudograph<String,DefaultEdge> G;
     public void setPipe(Pipe p){
     	if (!locked){
     		if (p != null) {
@@ -37,7 +41,6 @@ public class InstanceRepere extends Instance{
     	this.labelIdx =labelIdx;
     	unaries=null;
     	pairWise=null;
-    	uniq=null;
     }
     public void dumpInstance(){
 		System.out.println("-----Instance: "+getName()+"---------");
@@ -84,7 +87,42 @@ public class InstanceRepere extends Instance{
 			}
 		}
 	}
-	
+	public boolean removePairLinks(int cliqueSizeMax) {
+		if(G==null){
+			G = new Pseudograph<String, DefaultEdge>(DefaultEdge.class);
+			for(ArrayList<String> pair: uniqPairs){
+				G.addVertex(pair.get(0));
+				G.addVertex(pair.get(1));
+				G.addEdge(pair.get(0),pair.get(1));				
+			}
+		}
+		BronKerboschCliqueFinder<String,DefaultEdge> bkcf = new BronKerboschCliqueFinder<String,DefaultEdge>(G);
+		Collection<Set<String>> cliques =bkcf.getAllMaximalCliques();
+		HashSet<String> toremove = new HashSet<String>();
+		for(Set<String> clique: cliques){
+			System.out.println("clique size: "+clique.size());
+			int nmbrToRemove=clique.size()-cliqueSizeMax;
+			if(nmbrToRemove<0)
+				continue;
+			java.util.Iterator<String> itr = clique.iterator();
+			for(int i=0;i<nmbrToRemove;i++){
+				String v=itr.next();//normaly itr.hasNext() should be true because toremove< clique.size()
+				G.removeVertex(v);
+				toremove.add(v);
+				System.out.println("Removing vertex: "+v);
+			}
+		}
+		ArrayList<ArrayList<String>> pairsToRemove = new ArrayList<ArrayList<String>>();
+		for(ArrayList<String> pair: uniqPairs)
+			for(String v: toremove)
+				if(v.equals(pair.get(0)) || v.equals(pair.get(1)))
+					pairsToRemove.add(pair);
+		for(ArrayList<String> pair: pairsToRemove)
+			uniqPairs.remove(pair);
+		System.out.println(G);
+		return true;
+	}
+
 	public HashMap<String,ArrayList<String>> getFeatures() {
 		return features;
 	}
