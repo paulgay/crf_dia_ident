@@ -86,7 +86,29 @@ public class LoopyBP extends AbstractBeliefPropagation {
 
     doneWithGraph (mdl);
   }
+  
+  public boolean computeMarginalsAndSayIfconverged (FactorGraph mdl)
+  {
+    super.initForGraph (mdl);
 
+    int iter;
+    for (iter = 0; iter < maxIter; iter++) {
+      logger.finer ("***AsyncLoopyBP iteration "+iter);
+      propagate (mdl);
+      if (hasConverged ()) break;
+      copyOldMessages ();
+    }
+    iterUsed = iter;
+    doneWithGraph (mdl);
+    if (iter >= maxIter) {
+        logger.info ("***Loopy BP quitting: not converged after "+maxIter+" iterations.");
+        return false;
+      } else {
+        iterUsed++;  // there's an off-by-one b/c of location of above break
+        logger.info ("***AsyncLoopyBP converged: "+iterUsed+" iterations");
+        return true;
+      }
+  }
   private void propagate (FactorGraph mdl)
   {
     // Send all messages in random order.
