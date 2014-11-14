@@ -21,7 +21,7 @@ public class InstanceRepere extends Instance{
     boolean locked = false;
     Pipe pipe;
     Object name;
-	private ArrayList<ArrayList<String>> uniqPairs;
+	private ArrayList<ArrayList<String>> uniqPairs, uniqPairori;
 	private String outputFile;
 	private HashSet<String> hungLabels;
 	Pseudograph<String,DefaultEdge> G;
@@ -64,6 +64,12 @@ public class InstanceRepere extends Instance{
 	public HashMap<String,double[][]> getPairWise() {return pairWise;	}
 	public void setUniqPairs(ArrayList<ArrayList<String>> arrayList) { this.uniqPairs=arrayList;	}
 	public ArrayList<ArrayList<String>> getUniqPairs() {	return uniqPairs; }
+	public ArrayList<ArrayList<String>> getUniqPairsOri() {	
+		if(uniqPairori==null)
+			return getUniqPairs();
+		else
+			return uniqPairori; 
+		}
 	public String getoutputFile() {	return outputFile;	}	
 	public void addUnaries(HashMap<String,double[][]> unaries){
 		if(this.unaries==null)
@@ -88,6 +94,7 @@ public class InstanceRepere extends Instance{
 		}
 	}
 	public boolean removePairLinks(int cliqueSizeMax) {
+		uniqPairori=(ArrayList<ArrayList<String>>) uniqPairs.clone();
 		if(G==null){
 			G = new Pseudograph<String, DefaultEdge>(DefaultEdge.class);
 			for(ArrayList<String> pair: uniqPairs){
@@ -100,7 +107,6 @@ public class InstanceRepere extends Instance{
 		Collection<Set<String>> cliques =bkcf.getAllMaximalCliques();
 		HashSet<String> toremove = new HashSet<String>();
 		for(Set<String> clique: cliques){
-			System.out.println("clique size: "+clique.size());
 			int nmbrToRemove=clique.size()-cliqueSizeMax;
 			if(nmbrToRemove<0)
 				continue;
