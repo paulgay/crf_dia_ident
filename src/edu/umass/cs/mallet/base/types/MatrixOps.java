@@ -487,6 +487,22 @@ public final class MatrixOps
     return minIndex;
   }
 
+public static int[] maxIndex(double[][] table) {
+	int maxi[] = new int[2];
+	maxi[0]=-1;
+	maxi[1]=-1;
+	double maxou=Integer.MIN_VALUE;
+	for(int i=0;i<table.length;i++){
+		for(int j=0;j<table[0].length;j++){
+			if(table[i][j]>maxou){
+				maxou=table[i][j];
+				maxi[0]=i;
+				maxi[1]=j;
+			}
+		}
+	}
+	return maxi;
+}
 }
 
 
