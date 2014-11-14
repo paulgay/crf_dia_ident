@@ -79,7 +79,7 @@ public class MaxUniqEnforced{
 	    acrf.print(System.out);
 	    Inferencer maxInf = createInferencer (maxInferencerOption.value);
 	    acrf.setViterbiInferencer (maxInf);
-	    AVDiarizationEval.writeResults(acrf,testing,inputTestingPipe.getoutputDir());
+	    AVDiarizationEval.writeResultsUniqEnforce(acrf,testing,inputTestingPipe.getoutputDir());
 	    //AVDiarizationEval.writeMargin(acrf,testing,inputTestingPipe.getoutputDir());
 	    //*/
 	    timing.tick ("Training");

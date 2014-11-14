@@ -895,22 +895,93 @@ public class ACRF implements Serializable {
 	return new LabelsSequence (lbls);
     }
 
+    public HashMap<Integer, String> getBestLabelsUniqEnforce (InstanceRepere inst)
+    {
+	// Compute the MAP assignment
+	// Vertices count could be zero if all nodes pruned out of model.
+	//  In that case, don't bother calling Viterbi, and if statement below
+	//  will ensure that the LabelsSequence returned is arbitrary.
+	UnrolledGraph unrolled=null;
+	List cliques ;
+    boolean converged=false;
+	int idx=0;
+	int cliqueSizeMax[]= {10, 5, 3,2,1}; 
+    while(!converged  && idx<cliqueSizeMax.length){
+		unrolled = unroll (inst);
+		if (unrolled.numVariables () != 0) {
+		    converged=((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
+			if(! converged)
+				if(inst.removePairLinks(cliqueSizeMax[idx])){
+					System.out.println("No convergence, I removed some uniq links , biggest clique:"+cliqueSizeMax[idx]);
+					idx+=1;
+				}
+	    }
+	}
+    if(!converged){
+		unrolled  = unroll (inst);
+		((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
+    }
+	cliques=unrolled.getCliques();
+    for (Iterator it = cliques.iterator(); it.hasNext();) {
+        VarSet c = (VarSet) it.next();
+    }
+	int numFactors = unrolled.getNumFactors ();
+	int maxTime = unrolled.getMaxTime ();
+	//Labels[] lbls = new Labels [maxTime];
+	double table[][] = new double[maxTime][unrolled.getOutputAlphabet(0).size()];
+	for (int t = 0; t < maxTime; t++) {
+	    for (int i = 0; i < numFactors; i++) {
+	    	Variable var = unrolled.lookupVarForLabel (t, i);
+	    	if (var != null) {
+	    		Factor marg = viterbi.lookupMarginal (var);
+	    		for(int l=0;l<var.getLabelAlphabet().size();l++)
+	    			table[t][l]=new Double( ((DiscreteFactor) marg).valueAtLocation(l));
+		} else {
+		    if (warnOnNoMax) {
+			logger.warning ("Could not determine max label for instance "+inst+" time "+t+" factor "+i+" [...and probably others...]");
+			warnOnNoMax = false;
+		    }
+		}
+	    }
+	}
+	int maxi[] = null;
+    maxi = MatrixOps.maxIndex(table);
+    HashMap<Integer,String> seg2label = new HashMap<Integer,String>(); 
+    while(table[maxi[0]][maxi[1]]>0){
+    	/*System.out.println(table[0][0]+" "+table[0][1]+" "+table[0][2]);
+    	System.out.println(table[1][0]+" "+table[1][1]+" "+table[1][2]);
+    	System.out.println(table[2][0]+" "+table[2][1]+" "+table[2][2]);
+    	System.out.println(table[3][0]+" "+table[3][1]+" "+table[3][2]);
+    	System.out.println(table[4][0]+" "+table[4][1]+" "+table[4][2]);
+    	System.out.println(table[5][0]+" "+table[5][1]+" "+table[5][2]);
+    	System.out.println(maxi[0]+" "+maxi[1]);*/
+    	if(maxi[0]==0){
+    		int a=0;
+    	}
+    	for(int j=0;j<table[0].length;j++)
+    		table[maxi[0]][j]=-1;
+    	for(ArrayList<String> pair: inst.getUniqPairsOri()){
+    		if(pair.get(0).equals(inst.getSegmentNames().get(maxi[0])))
+    				table[inst.getSegmentNames().indexOf(pair.get(1))][maxi[1]]=-1;
+    		if(pair.get(1).equals(inst.getSegmentNames().get(maxi[0])))
+				table[inst.getSegmentNames().indexOf(pair.get(0))][maxi[1]]=-1;
+    	}
+    	seg2label.put(new Integer(maxi[0]), unrolled.getOutputAlphabet(0).lookupLabel(maxi[1]).toString());
+        maxi = MatrixOps.maxIndex(table);
+    }
+	return seg2label;
+    }
+    
 	public HashMap<String,HashMap<String, Double>> getMargin(InstanceRepere inst) {
 		// Compute the MAP assignment
 		HashMap<String,HashMap<String, Double>> margin = new HashMap<String,HashMap<String, Double>>(); 
 		UnrolledGraph unrolled  = unroll (inst);
-		List cliques=unrolled.getCliques();
-	    for (Iterator it = cliques.iterator(); it.hasNext();) {
-	        VarSet c = (VarSet) it.next();
-	       	}
 
 		// Vertices count could be zero if all nodes pruned out of model.
 		//  In that case, don't bother calling Viterbi, and if statement below
 		//  will ensure that the LabelsSequence returned is arbitrary.
-	    boolean converged=false;
 		if (unrolled.numVariables () != 0) {
 		    viterbi.computeMarginals(unrolled);
-		    //viterbi.computeMarginalsAndSayIfconverged (unrolled);
 		}
 
 		// And change it into a LabelsSequence
@@ -964,7 +1035,6 @@ public class ACRF implements Serializable {
 		int cliqueSizeMax[]= {10, 5, 3,2,1}; 
 	    while(!converged  && idx<cliqueSizeMax.length){
 			unrolled = unroll (inst);
-			cliques =unrolled.getCliques();
 			if (unrolled.numVariables () != 0) {
 			    converged=((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
 				if(! converged)
@@ -976,9 +1046,9 @@ public class ACRF implements Serializable {
 		}
 	    if(!converged){
 			unrolled  = unroll (inst);
-			cliques=unrolled.getCliques();
 			((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
 	    }
+		cliques=unrolled.getCliques();
 	    
 	    //viterbi.computeMarginalsAndSayIfconverged (unrolled);
 		// And change it into a LabelsSequence
