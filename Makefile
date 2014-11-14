@@ -2,7 +2,7 @@ MALLET_DIR = $(shell pwd)
 
 JAVAC = javac -g -Xlint
 JAVA_FLAGS = \
--classpath "/idiap/temp/pgay/lib/commons-collections-3.2.1/commons-math3-3.0/commons-math3-3.0.jar:/idiap/temp/pgay/lib/liumdiatoolkit/lium_spkdiarization-8.4.1.jar:/idiap/temp/pgay/lib/jgrapht-0.8.3/jgrapht-jdk1.6.jar:/idiap/temp/pgay/lib/commons-collections-3.2.1/commons-collections-3.2.1.jar:$(MALLET_DIR)/class:$(MALLET_DIR)/lib/mallet-deps.jar:$(MALLET_DIR)/lib/grmm-deps.jar"\
+-classpath "/Users/Gay/Documents/papers/these/code/crf_dia_ident/lib/jgrapht-core-0.9.0.jar:$(MALLET_DIR)/class:$(MALLET_DIR)/lib/mallet-deps.jar:$(MALLET_DIR)/lib/grmm-deps.jar"\
 -sourcepath "$(MALLET_DIR)/src" \
 -d $(MALLET_DIR)/class \
 -J-Xmx200m -source 1.5
