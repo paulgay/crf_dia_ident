@@ -152,7 +152,7 @@ public class PairWiseTemplateNotSim extends ACRF.ContinuousTemplate{
 	        			values[1]=0;
 	        		}
 	        		else{
-	        			values[1]=-table[seg1Idx][seg2Idx];
+	        			values[1]=2*table[seg1Idx][seg2Idx];
 	        			values[0]=0;
 	        		}
 	        	}

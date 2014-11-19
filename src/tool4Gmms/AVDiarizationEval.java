@@ -36,11 +36,12 @@ public class AVDiarizationEval{
     	    outputdir.mkdir();
     	for (int i = 0; i < testing.size(); i++) {
     	    InstanceRepere inst =(InstanceRepere)testing.getInstance (i);
-    	    LabelsSequence lbls= acrf.getBestLabels (inst);
+    	    HashMap<Integer,String> lbls= acrf.getBestLabelsUniqEnforce (inst);
     	    writeMapping(lbls,inst,outputdir);
     		}
         }
-    public static void writeMargin(ACRF acrf, InstanceListRepere testing,String dir){
+    
+	public static void writeMargin(ACRF acrf, InstanceListRepere testing,String dir){
     	File outputdir=new File(dir);
     	if(!outputdir.exists())
     	    outputdir.mkdir();
@@ -95,6 +96,24 @@ public class AVDiarizationEval{
 	    e.printStackTrace();
 	}
     }
+	private static void writeMapping(HashMap<Integer, String> lbls,	InstanceRepere inst, File outputdir) {
+		try {
+		    LabelsSequence lblseqRef = (LabelsSequence) inst.getTarget ();
+		    ArrayList<String> segmentNames=inst.getSegmentNames();
+		    String show= (String)inst.getName();
+		    String outputFile=outputdir.getAbsolutePath()+"/"+show+".mapping";
+		    FileWriter fstream;
+		    fstream = new FileWriter(outputFile);
+		    BufferedWriter out = new BufferedWriter(fstream);
+		    for(int i=0;i<lbls.size();i++){
+				out.write(lbls.get(new Integer(i))+" "+segmentNames.get(i)+" "+lblseqRef.get(i)+"\n");
+		    }
+		    out.close();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}	
+	}
+	
 	public static void writeMarginAndResults(ACRF acrf,
 			InstanceListRepere testing, String getoutputDir) {
 		// TODO Auto-generated method stub
