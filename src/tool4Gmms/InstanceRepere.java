@@ -94,6 +94,7 @@ public class InstanceRepere extends Instance{
 		}
 	}
 	public boolean removePairLinks(int cliqueSizeMax) {
+		System.out.println("Avant: "+uniqPairs.size());
 		uniqPairori=(ArrayList<ArrayList<String>>) uniqPairs.clone();
 		if(G==null){
 			G = new Pseudograph<String, DefaultEdge>(DefaultEdge.class);
@@ -126,6 +127,7 @@ public class InstanceRepere extends Instance{
 		for(ArrayList<String> pair: pairsToRemove)
 			uniqPairs.remove(pair);
 		System.out.println(G);
+		System.out.println("Apres: "+uniqPairs.size());
 		return true;
 	}
 
