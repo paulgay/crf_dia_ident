@@ -907,6 +907,7 @@ public class ACRF implements Serializable {
 	int idx=0;
 	int cliqueSizeMax[]= {10, 5, 3,2,1}; 
     while(!converged  && idx<cliqueSizeMax.length){
+    	unrolled=null;
 		unrolled = unroll (inst);
 		if (unrolled.numVariables () != 0) {
 		    converged=((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
