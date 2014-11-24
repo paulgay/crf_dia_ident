@@ -9,7 +9,6 @@ package edu.umass.cs.mallet.grmm.learning;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import edu.umass.cs.mallet.base.maximize.Maximizable;
@@ -20,16 +19,15 @@ import edu.umass.cs.mallet.base.types.*;
 import java.io.*;
 
 import edu.umass.cs.mallet.grmm.inference.*;
-import edu.umass.cs.mallet.grmm.learning.templates.PairWiseTemplate;
-import edu.umass.cs.mallet.grmm.learning.templates.UnaryTemplate;
 import edu.umass.cs.mallet.grmm.types.*;
 
 import java.util.*;
 
 import gnu.trove.*;
-import tool4Gmms.InstanceListRepere;
 import tool4Gmms.InstanceRepere; 
+import net.sourceforge.sizeof.SizeOf;  
 
+import tool4Gmms.InstrumentationAgent;
 
 /**
  * Class for Arbitrary CRFs.  These are CRFs with completely
@@ -905,10 +903,22 @@ public class ACRF implements Serializable {
 	List cliques ;
     boolean converged=false;
 	int idx=0;
-	int cliqueSizeMax[]= {10, 5, 3,2,1}; 
+	int cliqueSizeMax[]= {5, 3,2,1}; 
     while(!converged  && idx<cliqueSizeMax.length){
 		unrolled = unroll (inst);
-		if (unrolled.numVariables () != 0) {
+    	Integer a =new Integer(2);
+    	SizeOf.skipStaticField(true);
+    	SizeOf.setMinSizeToLog(10);
+    	try{
+        	System.out.println("Test pour a:");
+        	System.out.println(SizeOf.iterativeSizeOf(a));
+        	System.out.println("Test pour unrolled:");
+        	System.out.println(SizeOf.iterativeSizeOf(unrolled));    		
+    	}
+    	catch(Exception e){System.out.println(e);}
+    	//System.out.println("Object of type '" + a.getClass() + "' has size of " + InstrumentationAgent.getObjectSize(a) + " bytes.");
+    	//System.out.println("Object of type '" + unrolled.getClass() + "' has size of " + InstrumentationAgent.getObjectSize(unrolled) + " bytes.");
+    	if (unrolled.numVariables () != 0) {
 		    converged=((LoopyBP) viterbi).computeMarginalsAndSayIfconverged (unrolled);
 			if(! converged)
 				if(inst.removePairLinks(cliqueSizeMax[idx])){
@@ -916,8 +926,10 @@ public class ACRF implements Serializable {
 					idx+=1;
 				}
 	    }
-    	unrolled=null;
-    	System.gc();
+    	if(!converged){
+    		unrolled=null;
+    		System.gc();
+    	}
 	}
     if(!converged){
 		unrolled  = unroll (inst);
