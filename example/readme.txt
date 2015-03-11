@@ -1,6 +1,6 @@
-each directory show the commands to train a CRF with unary, pairwise and uniq potential
+each example directory show the commands to train a CRF with unary, pairwise and uniq potential
 
-The features are assumed to be continuous and parameters are tied over all the labels, i.e. there is one CRF parameter for each feature
+The features are assumed to be continuous and parameters are tied over all the labels, i.e. there is one CRF parameter for each feature (note other techniques such as [1] could be applied, but I did not implemented them)
 
 **** train a CRF model *****
 The command to train a CRF model looks like: 
@@ -95,4 +95,7 @@ Note that several feature files can be used and others can be omitted:
 2 unaryFile2
 3 pairWiseFile
 5 outputDir
+
+[2]: Using continuous features in the maximum entropy model, Yu, Dong and Deng, Li and Acero, Alex, Pattern Recognition Letters, 2009
+
 
