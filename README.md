@@ -1,6 +1,6 @@
 crf_dia_ident
 =============
-This git correspond to the CRF Code used during my phd thesis. 
+This git corresponds to the CRF Code used during my phd thesis. 
 It uses the grmm toolbox:
 
  Sutton, Charles.  "GRMM: GRaphical Models in Mallet."
