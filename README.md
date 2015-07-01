@@ -2,6 +2,7 @@ crf_dia_ident
 =============
 This git correspond to the CRF Code used during my phd thesis. 
 It uses the grmm toolbox:
+
  Sutton, Charles.  "GRMM: GRaphical Models in Mallet."
     http://mallet.cs.umass.edu/grmm/. 2006.
 
