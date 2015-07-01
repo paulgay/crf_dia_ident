@@ -5,7 +5,7 @@ It uses the grmm toolbox:
  Sutton, Charles.  "GRMM: GRaphical Models in Mallet."
     http://mallet.cs.umass.edu/grmm/. 2006.
 
-I modified the interface and add new feature templates to use continuous features and must-not links features.
+I modified the interface and add new feature templates to use continuous features and must-not links constraints.
 
 The directory example contains toy examples showing how to use the different features
 
