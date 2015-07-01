@@ -1,5 +1,7 @@
 each example directory show the commands to train a CRF with unary, pairwise and uniq potential
 
+The following comments are about the general syntax of the files and the commands. I hope that put in parallel with the examples, this is enough to get you started
+
 The features are assumed to be continuous and parameters are tied over all the labels, i.e. there is one CRF parameter for each feature (note other techniques such as [1] could be applied, but I did not implemented them)
 
 **** train a CRF model *****
@@ -24,10 +26,13 @@ The file have space separated column formats:
 *listFile:
 label segmentID
 
-*unaryFile:
+During training the CRF model, the label is used as ground true. During inference and testing, you can put whatever label you want, it doesn't matter.
+
+
+*unaryFile (if a couple segmentID/feature_type is missing for a label, the value will be filled with 0 by the program):
 feature_type segmentID label value
 
-*pairWiseFile:
+*pairWiseFile (The output will be "value" if the CRF give the same label to segment1 and segment2 and "-value" otherwise" ):
 feature_type segment1 segment2 value
 
 *UniqFile ( unicity constraint file: This potential enforce two segments not to have the same label e.g. to faces in the same image cannot have the same name ):
@@ -96,6 +101,22 @@ Note that several feature files can be used and others can be omitted:
 3 pairWiseFile
 5 outputDir
 
-[2]: Using continuous features in the maximum entropy model, Yu, Dong and Deng, Li and Acero, Alex, Pattern Recognition Letters, 2009
+***** command to do inference ******
+* decoding
+java -classpath crf_dia_ident.jar:bsh.jar tool4Gmms.Main --pathsfile pathtests --max-inferencer LoopyBP --model unary.ser.gz
+--max-inferencer the inference algorithm that will be used
+
+The results is a .mapping file which will be located depending on the value 0 and 5 in pathtests
+The file .mapping has the following structure:
+inferedLabel segmentID originalLabel
+
+
+*getting marginal
+java -classpath crf_dia_ident.jar:bsh.jar tool4Gmms.GetMargin --pathsfile pathtests --max-inferencer LoopyBP --model pairwise.ser.gz
+This will produce a .margin file which contains the probability of each label given a segment.
+
+
+
+[1]: Using continuous features in the maximum entropy model, Yu, Dong and Deng, Li and Acero, Alex, Pattern Recognition Letters, 2009
 
 
